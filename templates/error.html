@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Error {{ error_code }} | Raahi{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="error-container">
+        <h1 class="display-1 text-danger">{{ error_code }}</h1>
+        <h2 class="mb-4">{{ error_message }}</h2>
+        <p class="lead mb-5">Sorry, something went wrong. Please try again or go back to the home page.</p>
+        <a href="{{ url_for('public.index') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-home me-2"></i> Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

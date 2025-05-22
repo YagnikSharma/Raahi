@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login | Raahi{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Administrator Login</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="login-logo">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" required autofocus>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Remember me</label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i> Login
+                            </button>
+                            <a href="{{ url_for('auth.forgot_password') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-key me-2"></i> Forgot Password?
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-dark text-center">
+                    <p class="mb-0 text-white-50">Authorized Personnel Only</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('public.index') }}" class="btn btn-link">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Public View
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

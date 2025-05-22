@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}About Raahi | Team Garun{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-md-8 offset-md-2 text-center">
+            <h1 class="display-4 fw-bold mb-4">About Raahi</h1>
+            <p class="lead">From the heart of Team Garun, a vision for safer cities</p>
+        </div>
+    </div>
+    
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-6">
+            <h2 class="mb-4">Our Mission</h2>
+            <p>Raahi means "traveler" in Hindi, and our mission is to ensure every traveler can navigate urban spaces with confidence and security. We believe that everyone deserves to feel safe in their community.</p>
+            <p>Using cutting-edge AI technology, we're creating a platform that detects potential safety threats in real-time, providing citizens with the information they need to make informed decisions about their routes and travel plans.</p>
+            <p>Our goal is not to create fear, but to empower communities with knowledge and tools that enhance public safety and emergency response.</p>
+        </div>
+        <div class="col-lg-6">
+            <img src="https://pixabay.com/get/g3241eb2bf640b81edd3251ea7160f5d43d079304a6d977531ef815b112969b5df84adf17c576856f203c0712ccbdf0d1b0f688295c34b8870835552128ac65ac_1280.jpg" alt="Urban Pathway" class="img-fluid rounded shadow">
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card bg-dark text-white">
+                <div class="card-body p-4">
+                    <h3 class="mb-3">The Technology Behind Raahi</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h5><i class="fas fa-robot me-2 text-primary"></i> AI Detection</h5>
+                                <p>Our system uses YOLOv8, a state-of-the-art computer vision model that can detect multiple objects in real-time. We've trained it to recognize emergency situations such as fires, physical altercations, and dangerous conditions.</p>
+                            </div>
+                            
+                            <div>
+                                <h5><i class="fas fa-microphone me-2 text-primary"></i> Audio Analysis</h5>
+                                <p>Raahi can detect emergency keywords in audio streams, such as calls for help, providing an additional layer of safety monitoring.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h5><i class="fas fa-map-marked-alt me-2 text-primary"></i> Safety Mapping</h5>
+                                <p>Areas are classified by safety level based on incident history, creating a visual heatmap that helps users identify safer routes through urban areas.</p>
+                            </div>
+                            
+                            <div>
+                                <h5><i class="fas fa-exclamation-triangle me-2 text-primary"></i> Emergency Response</h5>
+                                <p>Our SOS feature allows users to quickly signal for help in emergency situations, automatically marking their location and alerting administrators.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-lg-6 order-lg-2">
+            <h2 class="mb-4">Team Garun</h2>
+            <p>We are a team of passionate engineers, designers, and public safety advocates who believe that technology can be a force for social good.</p>
+            <p>Our diverse team brings together expertise in artificial intelligence, urban planning, emergency response, and user experience design to create a platform that addresses real-world safety challenges.</p>
+            <p>We work closely with community stakeholders to ensure our solution meets the actual needs of the people it serves, and we're committed to continuous improvement based on user feedback.</p>
+        </div>
+        <div class="col-lg-6 order-lg-1">
+            <img src="https://pixabay.com/get/g0124718e9fe63321dc6c0b5a5cf0027ad98f7ec95c77dc70836beaa4e6fe0885a44cb47435e67f12bb2b55563518ea0190b48cc7035c5d347419dd5a25499ed9_1280.jpg" alt="Urban Safety" class="img-fluid rounded shadow">
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Frequently Asked Questions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true" aria-controls="faq1">
+                                    How accurate is the AI detection?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p>Our AI models are trained on diverse datasets and are continuously improved. While no AI system is perfect, we typically achieve 85-95% accuracy in detecting common safety incidents. Each detection includes a confidence score, and all high-impact alerts are verified by human administrators before triggering emergency responses.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">
+                                    How is my privacy protected?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p>Raahi is designed with privacy in mind. We only collect location data when explicitly provided by users (such as during an SOS alert). Our system does not track individual users, and all public safety data is aggregated and anonymized. We never share personal information with third parties without consent.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">
+                                    What should I do if I see a safety incident?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p>If you witness an emergency situation, your first action should always be to contact local emergency services (police, fire, ambulance). Raahi is designed to complement these services, not replace them. After contacting authorities, you can use the SOS feature to mark the location for other users' awareness.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
+                                    How can I contribute to Raahi?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p>We welcome community involvement! You can contribute by providing feedback on the platform, reporting any issues you encounter, or volunteering for our testing programs. For technical contributors, our platform is built with open technologies, and we're always looking for developers passionate about public safety.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

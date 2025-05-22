@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+
+{% block title %}Alert Management | Raahi Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-bell me-2"></i> Alert Management</h1>
+                <div>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">System Alerts</h5>
+                        <div>
+                            <form class="d-flex" method="GET">
+                                <select name="type" class="form-select form-select-sm me-2" style="width: auto;">
+                                    <option value="">All Types</option>
+                                    <option value="sos">SOS Emergency</option>
+                                    <option value="detection">Detection</option>
+                                    <option value="system">System</option>
+                                </select>
+                                <select name="status" class="form-select form-select-sm me-2" style="width: auto;">
+                                    <option value="">All Status</option>
+                                    <option value="unread">Unread</option>
+                                    <option value="read">Read</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Message</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Date & Time</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if alerts.items %}
+                                    {% for alert in alerts.items %}
+                                        <tr class="{% if not alert.is_read %}table-active{% endif %}">
+                                            <td>{{ alert.id }}</td>
+                                            <td>
+                                                <span class="badge rounded-pill 
+                                                    {% if alert.alert_type == 'sos' %}
+                                                        bg-danger
+                                                    {% elif alert.alert_type == 'detection' %}
+                                                        bg-warning
+                                                    {% else %}
+                                                        bg-info
+                                                    {% endif %}
+                                                ">
+                                                    {{ alert.alert_type|upper }}
+                                                </span>
+                                            </td>
+                                            <td>{{ alert.message }}</td>
+                                            <td>
+                                                {% if alert.latitude and alert.longitude %}
+                                                    <a href="https://www.google.com/maps?q={{ alert.latitude }},{{ alert.longitude }}" target="_blank">
+                                                        {{ alert.latitude|round(4) }}, {{ alert.longitude|round(4) }}
+                                                        <i class="fas fa-external-link-alt ms-1 small"></i>
+                                                    </a>
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ alert.timestamp.strftime('%d %b %Y, %H:%M') }}</td>
+                                            <td>
+                                                {% if alert.is_read %}
+                                                    <span class="badge bg-secondary">Read</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">New</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    {% if alert.incident_id %}
+                                                        <a href="{{ url_for('admin.incident_detail', incident_id=alert.incident_id) }}" class="btn btn-outline-primary">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    
+                                                    {% if not alert.is_read %}
+                                                        <button type="button" class="btn btn-outline-success mark-read-btn" data-alert-id="{{ alert.id }}">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">
+                                            No alerts found matching the filter criteria.
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {% if alerts.total > 0 %}
+                                Showing {{ (alerts.page - 1) * alerts.per_page + 1 }} to
+                                {{ (alerts.page - 1) * alerts.per_page + alerts.items|length }} of
+                                {{ alerts.total }} alerts
+                            {% else %}
+                                No alerts found
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if alerts.pages > 1 %}
+                            <nav aria-label="Alert pagination">
+                                <ul class="pagination mb-0">
+                                    {% if alerts.has_prev %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('admin.alerts', page=alerts.prev_num, type=request.args.get('type'), status=request.args.get('status')) }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in alerts.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                        {% if page_num %}
+                                            {% if page_num == alerts.page %}
+                                                <li class="page-item active">
+                                                    <a class="page-link" href="#">{{ page_num }}</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ url_for('admin.alerts', page=page_num, type=request.args.get('type'), status=request.args.get('status')) }}">{{ page_num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#">...</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if alerts.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('admin.alerts', page=alerts.next_num, type=request.args.get('type'), status=request.args.get('status')) }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Alert Management Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title text-danger">SOS Alerts</h5>
+                                    <p class="card-text">Emergency alerts triggered by users requiring immediate attention.</p>
+                                    <div class="alert alert-danger">
+                                        <small>Respond to SOS alerts within 5 minutes.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title text-warning">Detection Alerts</h5>
+                                    <p class="card-text">Alerts generated from AI detection of anomalies in camera feeds.</p>
+                                    <div class="alert alert-warning">
+                                        <small>Verify AI detections before emergency dispatch.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title text-info">System Alerts</h5>
+                                    <p class="card-text">Technical alerts related to system maintenance and status.</p>
+                                    <div class="alert alert-info">
+                                        <small>Monitor system alerts for platform health.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mark as read functionality
+        const markReadButtons = document.querySelectorAll('.mark-read-btn');
+        
+        markReadButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alertId = this.getAttribute('data-alert-id');
+                
+                fetch(`/admin/alert/${alertId}/mark-read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the button and update the status
+                        this.parentElement.removeChild(this);
+                        const row = this.closest('tr');
+                        const statusCell = row.querySelector('td:nth-child(6)');
+                        if (statusCell) {
+                            statusCell.innerHTML = '<span class="badge bg-secondary">Read</span>';
+                        }
+                        row.classList.remove('table-active');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error marking alert as read:', error);
+                    alert('Failed to mark alert as read. Please try again.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

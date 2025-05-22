@@ -1,0 +1,208 @@
+/* Main styles for Raahi public safety platform */
+
+/* Global styles */
+:root {
+  --safety-green: #28a745;
+  --safety-yellow: #ffc107;
+  --safety-orange: #fd7e14;
+  --safety-red: #dc3545;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+.footer {
+  margin-top: auto;
+}
+
+/* Landing page styles */
+.landing-header {
+  background: linear-gradient(to right, #1a1a2e, #16213e);
+  padding: 4rem 0;
+}
+
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+}
+
+/* Map styles */
+.legend-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.incident-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.map-marker {
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.camera-marker i {
+  color: #007bff;
+  font-size: 24px;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+}
+
+.incident-marker i {
+  color: #dc3545;
+  font-size: 24px;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+}
+
+.user-marker i {
+  color: #007bff;
+  font-size: 30px;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+}
+
+/* Dashboard cards */
+.stats-card {
+  transition: all 0.3s ease;
+  border-left: 4px solid var(--bs-primary);
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.stats-card.safety-green {
+  border-left-color: var(--safety-green);
+}
+
+.stats-card.safety-yellow {
+  border-left-color: var(--safety-yellow);
+}
+
+.stats-card.safety-orange {
+  border-left-color: var(--safety-orange);
+}
+
+.stats-card.safety-red {
+  border-left-color: var(--safety-red);
+}
+
+/* SOS button styling */
+.sos-btn {
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* Alert badges */
+.badge.bg-orange {
+  background-color: var(--safety-orange) !important;
+}
+
+/* Admin sidebar */
+.admin-sidebar {
+  min-height: calc(100vh - 56px);
+}
+
+.admin-content {
+  min-height: calc(100vh - 56px);
+}
+
+/* Camera feed */
+.camera-feed {
+  position: relative;
+  aspect-ratio: 16/9;
+  background-color: #1a1a1a;
+  overflow: hidden;
+}
+
+.camera-feed .camera-status {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+}
+
+.camera-feed .camera-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+}
+
+/* Incident timeline */
+.incident-timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.incident-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 10px;
+  width: 2px;
+  background-color: var(--bs-gray-600);
+}
+
+.incident-timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.incident-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -30px;
+  top: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+}
+
+.incident-timeline-item.safety-red::before {
+  background-color: var(--safety-red);
+}
+
+.incident-timeline-item.safety-orange::before {
+  background-color: var(--safety-orange);
+}
+
+.incident-timeline-item.safety-yellow::before {
+  background-color: var(--safety-yellow);
+}
+
+.incident-timeline-item.safety-green::before {
+  background-color: var(--safety-green);
+}

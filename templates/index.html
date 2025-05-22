@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Raahi - AI-Powered Public Safety Platform | Team Garun{% endblock %}
+
+{% block content %}
+<div class="landing-header py-5 text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Raahi: Making Cities Safer with AI</h1>
+                <p class="lead mb-4">An intelligent public safety platform that uses computer vision to detect emergencies, visualize safety zones, and help you make informed travel decisions.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="{{ url_for('public.map') }}" class="btn btn-primary btn-lg px-4 me-md-2">View Safety Map</a>
+                    <a href="{{ url_for('public.incidents') }}" class="btn btn-outline-light btn-lg px-4">Recent Incidents</a>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="text-center">
+                    <img src="https://pixabay.com/get/g877bd7995b50cb9221d5adc3f88fc27cf904619d5779404dd4b61dc690641820891ef14a1c122addfc63f9a58fcfc35f5bde241c78b7fd760886694963341f61_1280.jpg" alt="CCTV Camera" class="img-fluid rounded shadow">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row text-center mb-5">
+        <div class="col-md-12">
+            <h2 class="display-5 fw-bold">From the Heart of Team Garun</h2>
+            <p class="lead">Raahi is built with a mission to create safer urban spaces for everyone.</p>
+        </div>
+    </div>
+    
+    <div class="row g-4 py-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-eye fa-2x"></i>
+                    </div>
+                    <h3 class="card-title">Real-time Detection</h3>
+                    <p class="card-text">Our AI constantly monitors CCTV footage to detect emergencies like fires, assaults, and other threats.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-map-marked-alt fa-2x"></i>
+                    </div>
+                    <h3 class="card-title">Safety Visualization</h3>
+                    <p class="card-text">Color-coded safety zones help you identify safe areas and make informed travel decisions.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-danger bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <h3 class="card-title">Emergency Response</h3>
+                    <p class="card-text">Quick SOS triggers and emergency alerts help connect you with emergency services when needed.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold mb-4">How Raahi Works</h2>
+                <div class="accordion" id="howItWorksAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                AI-Powered Detection
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#howItWorksAccordion">
+                            <div class="accordion-body">
+                                <p>Our platform uses advanced computer vision algorithms to analyze CCTV footage and detect potential safety threats like fires, explosions, assaults, and poor visibility conditions.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Safety Classification
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#howItWorksAccordion">
+                            <div class="accordion-body">
+                                <p>Areas are classified into safety zones based on incident history:</p>
+                                <ul class="list-unstyled">
+                                    <li><span class="badge bg-success">Green</span> - Safe (0 incidents)</li>
+                                    <li><span class="badge bg-warning">Yellow</span> - Caution (1-2 incidents)</li>
+                                    <li><span class="badge bg-orange">Orange</span> - High Caution (3-5 incidents)</li>
+                                    <li><span class="badge bg-danger">Red</span> - Unsafe (>5 incidents)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Public Access
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#howItWorksAccordion">
+                            <div class="accordion-body">
+                                <p>Anyone can access the safety map without login, helping citizens make informed travel decisions. Yellow and orange zones are for information only - use your discretion when traveling.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="https://pixabay.com/get/g75bcf4cf14ff618402ba4449f927ef1e872e1183d93dbaa6782e3cdf0a3a617d8e1aa85e23319699ddb42b3b6bd965f63c7a9fa192327936a999f61a85bee25f_1280.jpg" alt="Safety Map" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row text-center mb-4">
+        <div class="col-md-12">
+            <h2 class="display-5 fw-bold">Choose Your Role</h2>
+            <p class="lead">Raahi serves different user needs based on your role.</p>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-primary h-100">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Public Visitor</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">View safety heatmap without login</li>
+                        <li class="list-group-item">Check recent incidents in your area</li>
+                        <li class="list-group-item">Trigger SOS alerts in emergencies</li>
+                        <li class="list-group-item">Make informed travel decisions</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('public.map') }}" class="btn btn-outline-primary w-100">Continue as Visitor</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-danger h-100">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0">Administrator</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Secure login required</li>
+                        <li class="list-group-item">Monitor all incidents and alerts</li>
+                        <li class="list-group-item">Review CCTV anomaly detections</li>
+                        <li class="list-group-item">Manage safety zones and cameras</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-danger w-100">Login as Admin</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-dark text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold">Emergency Response</h2>
+                <p class="lead">When every second counts, Raahi is there to help.</p>
+                <p>Our platform includes a prominent SOS button that allows users to quickly alert emergency services in critical situations. Your location is shared only with authorized personnel to ensure timely help.</p>
+                <button class="btn btn-danger btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#sosModal">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Try SOS Feature
+                </button>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="https://pixabay.com/get/gf9ce7497dfd1faedd2a4d1977cb3d8c60248bef3b1e7efe39a2df65050a9c5610430af0b29996d6ac391b7c08c5a3bfd8badce9cb7bb6bd7376adfd6ca4758d4_1280.jpg" alt="Emergency Response" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .landing-header {
+        background: linear-gradient(to right, #1a1a2e, #16213e);
+        padding: 4rem 0;
+    }
+    
+    .feature-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 4rem;
+        height: 4rem;
+    }
+    
+    .bg-orange {
+        background-color: #fd7e14 !important;
+    }
+</style>
+{% endblock %}

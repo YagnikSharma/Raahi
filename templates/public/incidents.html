@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+
+{% block title %}Incident Reports | Raahi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-exclamation-circle text-danger me-2"></i> Incident Reports</h2>
+            <p class="lead">View recent safety incidents detected by our AI system</p>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark shadow-sm">
+                <div class="card-body py-2">
+                    <form method="GET" action="{{ url_for('public.incidents') }}" class="d-flex">
+                        <select name="type" class="form-select me-2" aria-label="Filter by incident type">
+                            <option value="">All Incidents</option>
+                            {% for type in incident_types %}
+                                <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type|capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0">
+                        {% if selected_type %}
+                            {{ selected_type|capitalize }} Incidents
+                        {% else %}
+                            All Incidents
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Date & Time</th>
+                                    <th scope="col">Confidence</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if incidents.items %}
+                                    {% for incident in incidents.items %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge rounded-pill 
+                                                    {% if incident.incident_type == 'fire' or incident.incident_type == 'explosion' %}
+                                                        bg-danger
+                                                    {% elif incident.incident_type == 'fight' or incident.incident_type == 'weapon' %}
+                                                        bg-warning
+                                                    {% elif incident.incident_type == 'darkness' %}
+                                                        bg-secondary
+                                                    {% else %}
+                                                        bg-primary
+                                                    {% endif %}
+                                                ">
+                                                    {{ incident.incident_type|capitalize }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if incident.camera %}
+                                                    {{ incident.camera.location }}
+                                                {% else %}
+                                                    {{ incident.latitude|round(4) }}, {{ incident.longitude|round(4) }}
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ incident.timestamp.strftime('%d %b %Y, %H:%M') }}</td>
+                                            <td>
+                                                <div class="progress" style="height: 10px;">
+                                                    <div class="progress-bar 
+                                                        {% if incident.confidence < 0.5 %}
+                                                            bg-warning
+                                                        {% elif incident.confidence < 0.7 %}
+                                                            bg-info
+                                                        {% else %}
+                                                            bg-success
+                                                        {% endif %}"
+                                                        role="progressbar" 
+                                                        style="width: {{ (incident.confidence * 100)|int }}%"
+                                                        aria-valuenow="{{ (incident.confidence * 100)|int }}" 
+                                                        aria-valuemin="0" 
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <small>{{ (incident.confidence * 100)|int }}%</small>
+                                            </td>
+                                            <td>
+                                                {% if incident.is_verified %}
+                                                    <span class="badge bg-success">Verified</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Unverified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            No incidents found matching the filter criteria.
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {% if incidents.total > 0 %}
+                                Showing {{ (incidents.page - 1) * incidents.per_page + 1 }} to
+                                {{ (incidents.page - 1) * incidents.per_page + incidents.items|length }} of
+                                {{ incidents.total }} incidents
+                            {% else %}
+                                No incidents found
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if incidents.pages > 1 %}
+                            <nav aria-label="Incident pagination">
+                                <ul class="pagination mb-0">
+                                    {% if incidents.has_prev %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('public.incidents', page=incidents.prev_num, type=selected_type) }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in incidents.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                        {% if page_num %}
+                                            {% if page_num == incidents.page %}
+                                                <li class="page-item active">
+                                                    <a class="page-link" href="#">{{ page_num }}</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ url_for('public.incidents', page=page_num, type=selected_type) }}">{{ page_num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#">...</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if incidents.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('public.incidents', page=incidents.next_num, type=selected_type) }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Incident Types</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="incidentTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Understand Incident Reports</h5>
+                </div>
+                <div class="card-body">
+                    <p>The incidents shown on this page are detected by our AI system. Here's what you need to know:</p>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <span class="badge bg-danger me-2">Fire/Explosion</span>
+                            High priority incidents requiring immediate attention
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge bg-warning me-2">Fight/Weapon</span>
+                            Potential criminal activities detected
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge bg-secondary me-2">Darkness</span>
+                            Poor visibility conditions that may pose safety risks
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Confidence Score:</strong> Indicates the AI's certainty about the detection
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Verified Status:</strong> Incidents reviewed and confirmed by administrators
+                        </li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <small>This information is provided for awareness only. For emergencies, contact local authorities directly or use the SOS button.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get incident type data for chart
+        fetch('/api/incidents?limit=100')
+            .then(response => response.json())
+            .then(incidents => {
+                // Count incidents by type
+                const typeCounts = {};
+                incidents.forEach(incident => {
+                    typeCounts[incident.type] = (typeCounts[incident.type] || 0) + 1;
+                });
+                
+                // Prepare data for chart
+                const labels = Object.keys(typeCounts).map(type => type.charAt(0).toUpperCase() + type.slice(1));
+                const data = Object.values(typeCounts);
+                
+                // Set chart colors based on incident types
+                const colors = labels.map(label => {
+                    if (label.toLowerCase() === 'fire' || label.toLowerCase() === 'explosion') {
+                        return '#dc3545'; // danger
+                    } else if (label.toLowerCase() === 'fight' || label.toLowerCase() === 'weapon') {
+                        return '#ffc107'; // warning
+                    } else if (label.toLowerCase() === 'darkness') {
+                        return '#6c757d'; // secondary
+                    } else {
+                        return '#0d6efd'; // primary
+                    }
+                });
+                
+                // Create the chart
+                const ctx = document.getElementById('incidentTypeChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Incident Distribution by Type'
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching incident data for chart:', error);
+            });
+    });
+</script>
+{% endblock %}
