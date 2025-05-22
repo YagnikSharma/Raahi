@@ -1,0 +1,179 @@
+Excellent vision, Nandu! You're designing a powerful, socially impactful system that leverages AI, live video, and user interaction to make cities smarter and safer. Let’s now create the *Backend Prompt* and then combine both *Frontend + Backend into one cohesive full-stack AI project prompt* you can use on Replit or any AI-powered coding platform.
+
+---
+
+## 🔧 *Detailed Backend Prompt for AI-Driven Public Safety Platform (Team Garun)*
+
+---
+
+### 🚨 *Backend Project Overview*
+
+Create a backend system for a *real-time public safety platform* called *Team Garun* that:
+
+* Detects *anomalies from live CCTV feeds* (fire, explosions, assault, abuse, darkness)
+* Detects *emergency keywords from audio* (e.g., "help me", "save me")
+* Classifies areas by *safety level* and displays them as *color-coded zones on a map*
+* Stores incidents and login data in a *database*
+* Provides a public *read-only API* for citizens and a secure *admin dashboard* requiring login
+* Trains and uses *YOLOv8 or equivalent AI models* for real-time anomaly detection
+
+---
+
+### ⚙ *Backend Requirements*
+
+#### ✅ 1. Anomaly Detection Engine
+
+* Input: Live CCTV footage (stream or periodic frames)
+* Detect:
+
+  * Fire
+  * Explosion
+  * Physical violence (fights/assault)
+  * Abuse (gesture/movement)
+  * Poor lighting / darkness (night-time visibility classifier)
+* Tools:
+
+  * Use *YOLOv8* or any suitable object detection model
+  * Optionally use *OpenCV* for frame extraction
+  * Classify detected anomalies and count occurrences per geolocation block
+
+---
+
+#### ✅ 2. Voice-based SOS Detection
+
+* Input: Live microphone/audio feed
+* Trigger detection on keywords:
+
+  * “help me”, “save me”, “fire”, “someone help”
+* Tools:
+
+  * Use Python’s SpeechRecognition, Vosk, or whisper by OpenAI
+  * Output anomaly and timestamp if matched
+
+---
+
+#### ✅ 3. Area Safety Classification System
+
+* Assign each block a safety level:
+
+  * 0 anomalies → *Green (Safe)*
+  * 1-2 anomalies → *Yellow (Caution)*
+  * 3-5 anomalies → *Orange (High Caution)*
+  * > 5 anomalies → *Red (Unsafe)*
+* Store incident counts and safety status in a *database* per geolocation (lat, lng block)
+* Update live as anomalies are detected
+
+---
+
+#### ✅ 4. Heatmap Data API
+
+* Create public REST endpoints:
+
+  * /api/heatmap → Returns heatmap data by location (color-coded)
+  * /api/incidents → Recent anomaly events
+  * /api/safety/:lat/:lng → Returns safety rating of given location
+
+---
+
+#### ✅ 5. User Authentication & Admin Panel
+
+* Admin login with:
+
+  * Email + Password (stored hashed in DB)
+  * JWT token-based authentication
+* Admin features:
+
+  * View all incident logs
+  * View and download heatmap data
+  * Manually tag unsafe areas if needed
+
+---
+
+#### ✅ 6. SOS Trigger Integration
+
+* POST /api/sos:
+
+  * Accepts user GPS + timestamp + optional message
+  * Immediately flags area as high-priority red zone
+  * Adds it to incident log and notifies admin (optional webhook/email)
+
+---
+
+#### ✅ 7. Tech Stack Suggestion
+
+* *Backend Framework*: Python (FastAPI or Flask)
+* *AI Libraries*: YOLOv8 (Ultralytics), OpenCV, SpeechRecognition or Whisper
+* *Database*: MongoDB / PostgreSQL
+* *Auth*: JWT
+* *Hosting*: Replit / Render / Railway
+
+---
+
+### 🛡 Security & Scalability
+
+* All public endpoints should be *read-only*
+* Admin routes protected with JWT
+* CORS enabled for frontend integration
+* Use *logging* to monitor anomalies + API access
+
+---
+
+## ✅ Combined Full-Stack Prompt (Frontend + Backend)
+
+---
+
+### 🎯 *Unified Prompt for AI Builder (Replit, GPT, or Dev Team)*
+
+---
+
+> Build a full-stack AI-powered public safety platform called *Team Garun* that:
+>
+> * Uses *live CCTV* and *audio feeds* to detect *emergencies and crimes*
+> * Visualizes dangerous areas using a *live heatmap over Google Maps*
+> * Allows *citizens* to view area safety data *without login*
+> * Includes an *admin dashboard* (login required) to manage incidents and analyze threats
+> * Uses *AI models (YOLO, SpeechRecognition/Whisper)* to detect:
+>
+>   * 🔥 Fire
+>   * 💥 Explosions
+>   * 👊 Assault/Abuse
+>   * 🌑 Road Darkness
+>   * 🗣 Emergency audio phrases like “help me”, “save me”
+>
+> ### 🔧 Backend Tasks:
+>
+> * Train YOLOv8 model for custom anomalies
+> * Process CCTV and audio streams for real-time detection
+> * Store each incident with timestamp and GPS in a database
+> * Classify areas by safety (Green, Yellow, Orange, Red) based on anomaly count
+> * Expose public APIs:
+>
+>   * /api/heatmap, /api/incidents, /api/safety/:location
+> * Admin login with JWT + MongoDB/PostgreSQL
+> * Trigger SOS alert via /api/sos with GPS
+
+> ### 🖥 Frontend Tasks:
+>
+> * Use *React + Tailwind CSS*
+> * *Map View (Citizen)*: Google Maps or Leaflet.js with live heatmap
+> * *Admin Dashboard*: Incident list, heatmap, user management (after login)
+> * *Real-time Alerts*: Display banners or popups for new events
+> * *Route Safety Planner*: Safer route suggestion avoiding red zones
+> * *SOS Button + Audio Detection UI* for real-time SOS triggers
+
+> ### 💾 Tech Stack:
+>
+> * React, Tailwind, Leaflet.js
+> * Python (FastAPI or Flask), YOLOv8, OpenCV, Whisper
+> * MongoDB or PostgreSQL
+> * Replit or Railway for deployment
+
+---
+
+Would you like me to:
+
+* Generate the *file and folder structure* for this full-stack project?
+* Start with *backend boilerplate code*?
+* Or generate the *first working module* (e.g., CCTV + YOLO detection)?
+
+Let me know and I’ll generate accordingly.
