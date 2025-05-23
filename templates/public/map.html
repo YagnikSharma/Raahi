@@ -212,14 +212,14 @@
         
         // Add zone circles to map
         {% for zone in zones %}
-            const zoneCircle = L.circle([{{ zone.latitude }}, {{ zone.longitude }}], {
+            const zoneCircle{{ loop.index }} = L.circle([{{ zone.latitude }}, {{ zone.longitude }}], {
                 color: '{{ zone.color }}',
                 fillColor: '{{ zone.color }}',
                 fillOpacity: 0.3,
                 radius: 500  // in meters
             }).addTo(zonesLayer);
             
-            zoneCircle.bindPopup(`
+            zoneCircle{{ loop.index }}.bindPopup(`
                 <h6>Safety Zone</h6>
                 <p>Safety Level: 
                     <span class="badge bg-{{ 'success' if zone.safety_level == 0 else 'warning' if zone.safety_level == 1 else 'orange' if zone.safety_level == 2 else 'danger' }}">
@@ -382,6 +382,148 @@
                     });
             });
         }
+
+        // Video Upload Functionality
+        const videoUploadArea = document.getElementById('videoUploadArea');
+        const videoInput = document.getElementById('videoInput');
+        const videoUploadStatus = document.getElementById('videoUploadStatus');
+        const videoFileName = document.getElementById('videoFileName');
+        const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+        const videoProcessingStatus = document.getElementById('videoProcessingStatus');
+        const processingMessage = document.getElementById('processingMessage');
+        const videoProgress = document.getElementById('videoProgress');
+        const videoResults = document.getElementById('videoResults');
+        const detectionCount = document.getElementById('detectionCount');
+        const viewHeatmapBtn = document.getElementById('viewHeatmapBtn');
+
+        let selectedFile = null;
+
+        // Click to browse
+        videoUploadArea.addEventListener('click', () => {
+            videoInput.click();
+        });
+
+        // Drag and drop
+        videoUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            videoUploadArea.style.backgroundColor = '#e3f2fd';
+        });
+
+        videoUploadArea.addEventListener('dragleave', () => {
+            videoUploadArea.style.backgroundColor = '';
+        });
+
+        videoUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            videoUploadArea.style.backgroundColor = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelection(files[0]);
+            }
+        });
+
+        // File input change
+        videoInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelection(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelection(file) {
+            const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/x-msvideo'];
+            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp4|avi|mov|mkv)$/i)) {
+                alert('Please select a valid video file (MP4, AVI, MOV, MKV)');
+                return;
+            }
+
+            if (file.size > 100 * 1024 * 1024) {
+                alert('File size too large. Please select a video under 100MB.');
+                return;
+            }
+
+            selectedFile = file;
+            videoFileName.textContent = file.name;
+            videoUploadStatus.classList.remove('d-none');
+            videoProcessingStatus.classList.add('d-none');
+            videoResults.classList.add('d-none');
+        }
+
+        // Upload and analyze video
+        uploadVideoBtn.addEventListener('click', () => {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('video', selectedFile);
+
+            videoUploadStatus.classList.add('d-none');
+            videoProcessingStatus.classList.remove('d-none');
+            processingMessage.textContent = 'Uploading video for AI analysis...';
+            videoProgress.style.width = '10%';
+
+            fetch('/api/video/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                processingMessage.textContent = 'AI analysis started with OpenAI...';
+                videoProgress.style.width = '20%';
+                pollVideoProgress();
+            })
+            .catch(error => {
+                alert('Upload failed: ' + error.message);
+                videoProcessingStatus.classList.add('d-none');
+                videoUploadStatus.classList.remove('d-none');
+            });
+        });
+
+        function pollVideoProgress() {
+            const pollInterval = setInterval(() => {
+                fetch('/api/video/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        clearInterval(pollInterval);
+                        alert('Processing error: ' + data.error);
+                        videoProcessingStatus.classList.add('d-none');
+                        return;
+                    }
+
+                    videoProgress.style.width = data.progress + '%';
+                    
+                    if (data.progress < 25) {
+                        processingMessage.textContent = 'Initializing OpenAI vision model...';
+                    } else if (data.progress < 50) {
+                        processingMessage.textContent = 'AI analyzing video frames...';
+                    } else if (data.progress < 75) {
+                        processingMessage.textContent = 'Detecting fire, violence, explosions...';
+                    } else if (data.progress < 95) {
+                        processingMessage.textContent = 'Generating detection heatmap...';
+                    } else if (data.progress >= 100 && data.results) {
+                        clearInterval(pollInterval);
+                        showResults(data.results);
+                    }
+                })
+                .catch(error => {
+                    console.error('Progress polling error:', error);
+                });
+            }, 2000);
+        }
+
+        function showResults(results) {
+            videoProcessingStatus.classList.add('d-none');
+            videoResults.classList.remove('d-none');
+            detectionCount.textContent = results.total_detections;
+        }
+
+        viewHeatmapBtn.addEventListener('click', () => {
+            window.open('/api/video/heatmap', '_blank');
+        });
     });
 </script>
 {% endblock %}
