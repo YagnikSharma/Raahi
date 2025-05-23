@@ -83,11 +83,18 @@ class EnhancedSOSSystem {
         };
         
         this.recognition.onend = () => {
-            // Auto-restart if still supposed to be listening
-            if (this.isListening) {
+            // Only restart if still supposed to be listening and not already starting
+            if (this.isListening && this.recognition.readyState !== 'running') {
                 setTimeout(() => {
-                    this.recognition.start();
-                }, 500);
+                    if (this.isListening && this.recognition.readyState !== 'running') {
+                        try {
+                            this.recognition.start();
+                        } catch (error) {
+                            console.log('Recognition restart failed:', error);
+                            this.isListening = false;
+                        }
+                    }
+                }, 1000);
             }
         };
     }
@@ -178,15 +185,20 @@ class EnhancedSOSSystem {
     }
     
     setupAutoStart() {
-        // Auto-start voice detection when page loads
-        setTimeout(() => {
-            this.startListening();
-        }, 1000);
+        // Don't auto-start to avoid conflicts - let user manually activate
+        console.log('🎤 Voice emergency detection ready - click to activate');
+        this.showNotification('🎤 Voice emergency detection is ready! Click the microphone button to activate.', 'info');
     }
     
     startListening() {
         if (!this.recognition) {
             this.showFallbackSOS();
+            return;
+        }
+        
+        // Don't start if already listening
+        if (this.isListening) {
+            console.log('🎤 Already listening for emergencies');
             return;
         }
         
@@ -197,6 +209,7 @@ class EnhancedSOSSystem {
             console.log('🎤 Voice emergency detection started');
         } catch (error) {
             console.error('Failed to start speech recognition:', error);
+            this.isListening = false;
             this.showMicrophonePermissionError();
         }
     }
