@@ -1,0 +1,375 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Video Analysis Management | Raahi Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-video"></i> AI Video Analysis Management
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Video Upload Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-upload"></i> Upload New Video</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="adminVideoUploadArea" class="border rounded p-4 text-center" style="border-style: dashed; cursor: pointer; background-color: #f8f9fa;">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                        <h5>Drop video here or click to browse</h5>
+                                        <p class="text-muted">MP4, AVI, MOV, MKV files supported</p>
+                                        <input type="file" id="adminVideoInput" accept=".mp4,.avi,.mov,.mkv" style="display: none;">
+                                    </div>
+                                    
+                                    <div id="adminUploadStatus" class="mt-3 d-none">
+                                        <div class="alert alert-info">
+                                            <strong>Selected:</strong> <span id="adminVideoFileName"></span>
+                                            <div class="mt-2">
+                                                <label class="form-label">Video Location (optional):</label>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <input type="number" class="form-control" id="videoLatitude" placeholder="Latitude" step="any">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <input type="number" class="form-control" id="videoLongitude" placeholder="Longitude" step="any">
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">Leave blank to use current location</small>
+                                            </div>
+                                            <button class="btn btn-primary mt-2" id="adminUploadBtn">
+                                                <i class="fas fa-brain"></i> Start AI Analysis
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div id="adminProcessingStatus" class="mt-3 d-none">
+                                        <div class="alert alert-warning">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                                <span id="adminProcessingMessage">Processing video...</span>
+                                            </div>
+                                            <div class="progress mt-2" style="height: 10px;">
+                                                <div id="adminVideoProgress" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Analysis Statistics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <div class="border rounded p-2">
+                                                <h4 class="text-danger" id="totalVideos">0</h4>
+                                                <small>Total Videos</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="border rounded p-2">
+                                                <h4 class="text-warning" id="totalDetections">0</h4>
+                                                <small>Total Detections</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="border rounded p-2">
+                                                <h4 class="text-success" id="safeVideos">0</h4>
+                                                <small>Safe Videos</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video Analysis Results Table -->
+                    <div class="card">
+                        <div class="card-header bg-dark text-white">
+                            <h6 class="mb-0"><i class="fas fa-list"></i> Video Analysis History</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped" id="videoAnalysisTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Video Name</th>
+                                            <th>Upload Time</th>
+                                            <th>Location</th>
+                                            <th>Detections</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="videoTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">No videos analyzed yet</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Labeling Modal -->
+<div class="modal fade" id="videoLabelModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-tags"></i> Video Labeling & Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Video Information</h6>
+                        <p><strong>Name:</strong> <span id="modalVideoName"></span></p>
+                        <p><strong>Location:</strong> <span id="modalVideoLocation"></span></p>
+                        <p><strong>Analysis Time:</strong> <span id="modalAnalysisTime"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Detection Summary</h6>
+                        <div id="modalDetectionSummary"></div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>Detection Labels</h6>
+                    <div id="detectionLabels"></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>Admin Notes</h6>
+                    <textarea class="form-control" id="adminNotes" rows="3" placeholder="Add admin notes about this video analysis..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="verifyVideoBtn">
+                    <i class="fas fa-check"></i> Verify Analysis
+                </button>
+                <button type="button" class="btn btn-warning" id="flagVideoBtn">
+                    <i class="fas fa-flag"></i> Flag for Review
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Video upload functionality
+    const adminVideoUploadArea = document.getElementById('adminVideoUploadArea');
+    const adminVideoInput = document.getElementById('adminVideoInput');
+    const adminUploadStatus = document.getElementById('adminUploadStatus');
+    const adminVideoFileName = document.getElementById('adminVideoFileName');
+    const adminUploadBtn = document.getElementById('adminUploadBtn');
+    const adminProcessingStatus = document.getElementById('adminProcessingStatus');
+    const adminProcessingMessage = document.getElementById('adminProcessingMessage');
+    const adminVideoProgress = document.getElementById('adminVideoProgress');
+    
+    let selectedFile = null;
+    let currentLocation = null;
+
+    // Get user's current location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            currentLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+        });
+    }
+
+    // Upload area interactions
+    adminVideoUploadArea.addEventListener('click', () => {
+        adminVideoInput.click();
+    });
+
+    adminVideoUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        adminVideoUploadArea.style.backgroundColor = '#e3f2fd';
+    });
+
+    adminVideoUploadArea.addEventListener('dragleave', () => {
+        adminVideoUploadArea.style.backgroundColor = '#f8f9fa';
+    });
+
+    adminVideoUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        adminVideoUploadArea.style.backgroundColor = '#f8f9fa';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelection(files[0]);
+        }
+    });
+
+    adminVideoInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
+    });
+
+    function handleFileSelection(file) {
+        const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/x-msvideo'];
+        if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp4|avi|mov|mkv)$/i)) {
+            alert('Please select a valid video file (MP4, AVI, MOV, MKV)');
+            return;
+        }
+
+        selectedFile = file;
+        adminVideoFileName.textContent = file.name;
+        adminUploadStatus.classList.remove('d-none');
+        adminProcessingStatus.classList.add('d-none');
+        
+        // Set current location as default if available
+        if (currentLocation) {
+            document.getElementById('videoLatitude').value = currentLocation.lat.toFixed(6);
+            document.getElementById('videoLongitude').value = currentLocation.lng.toFixed(6);
+        }
+    }
+
+    // Upload and analyze
+    adminUploadBtn.addEventListener('click', () => {
+        if (!selectedFile) return;
+
+        const formData = new FormData();
+        formData.append('video', selectedFile);
+        
+        // Add location data
+        const lat = document.getElementById('videoLatitude').value;
+        const lng = document.getElementById('videoLongitude').value;
+        
+        if (lat && lng) {
+            formData.append('latitude', lat);
+            formData.append('longitude', lng);
+        } else if (currentLocation) {
+            formData.append('latitude', currentLocation.lat);
+            formData.append('longitude', currentLocation.lng);
+        }
+
+        adminUploadStatus.classList.add('d-none');
+        adminProcessingStatus.classList.remove('d-none');
+        adminProcessingMessage.textContent = 'Uploading video for AI analysis...';
+        adminVideoProgress.style.width = '10%';
+
+        fetch('/api/video/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            adminProcessingMessage.textContent = 'AI analysis started with OpenAI...';
+            adminVideoProgress.style.width = '20%';
+            pollAdminVideoProgress();
+        })
+        .catch(error => {
+            alert('Upload failed: ' + error.message);
+            adminProcessingStatus.classList.add('d-none');
+            adminUploadStatus.classList.remove('d-none');
+        });
+    });
+
+    function pollAdminVideoProgress() {
+        const pollInterval = setInterval(() => {
+            fetch('/api/video/status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    clearInterval(pollInterval);
+                    alert('Processing error: ' + data.error);
+                    adminProcessingStatus.classList.add('d-none');
+                    return;
+                }
+
+                adminVideoProgress.style.width = data.progress + '%';
+                
+                if (data.progress < 25) {
+                    adminProcessingMessage.textContent = 'Initializing OpenAI vision model...';
+                } else if (data.progress < 50) {
+                    adminProcessingMessage.textContent = 'AI analyzing video frames...';
+                } else if (data.progress < 75) {
+                    adminProcessingMessage.textContent = 'Detecting fire, violence, explosions...';
+                } else if (data.progress < 95) {
+                    adminProcessingMessage.textContent = 'Generating detection heatmap...';
+                } else if (data.progress >= 100 && data.results) {
+                    clearInterval(pollInterval);
+                    showAdminResults(data.results);
+                    loadVideoHistory();
+                }
+            })
+            .catch(error => {
+                console.error('Progress polling error:', error);
+            });
+        }, 2000);
+    }
+
+    function showAdminResults(results) {
+        adminProcessingStatus.classList.add('d-none');
+        
+        // Show success message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success mt-3';
+        alert.innerHTML = `
+            <strong>Analysis Complete!</strong>
+            <p class="mb-1">Found ${results.total_detections} anomalies in "${results.video_name}"</p>
+            <button class="btn btn-sm btn-success" onclick="window.open('/api/video/heatmap', '_blank')">
+                <i class="fas fa-map"></i> View Detection Heatmap
+            </button>
+        `;
+        
+        adminUploadStatus.parentNode.appendChild(alert);
+        
+        // Reset for next upload
+        setTimeout(() => {
+            alert.remove();
+            adminUploadStatus.classList.add('d-none');
+            selectedFile = null;
+            adminVideoInput.value = '';
+            document.getElementById('videoLatitude').value = '';
+            document.getElementById('videoLongitude').value = '';
+        }, 5000);
+    }
+
+    function loadVideoHistory() {
+        // This would load video analysis history from the database
+        // For now, showing placeholder functionality
+        updateStatistics();
+    }
+
+    function updateStatistics() {
+        // Update statistics - would connect to real data
+        document.getElementById('totalVideos').textContent = '1';
+        document.getElementById('totalDetections').textContent = '1';
+        document.getElementById('safeVideos').textContent = '0';
+    }
+
+    // Load initial data
+    loadVideoHistory();
+});
+</script>
+{% endblock %}

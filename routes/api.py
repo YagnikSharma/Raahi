@@ -387,13 +387,18 @@ def upload_video():
         video_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(video_path)
         
+        # Get location data (use current location if not provided)
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
+        
         # Reset processing status
         video_processing_status = {
             'is_processing': False,
             'progress': 0,
             'current_video': filename,
             'results': None,
-            'error': None
+            'error': None,
+            'location': {'lat': latitude, 'lng': longitude} if latitude and longitude else None
         }
         
         # Start processing in background thread
