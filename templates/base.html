@@ -59,13 +59,7 @@
                             </a>
                         </li>
                     {% else %}
-                        <!-- Emergency Voice Detection Status -->
-                        <li class="nav-item">
-                            <div class="nav-link text-success" id="voice-status">
-                                <i class="fas fa-microphone" id="mic-icon"></i>
-                                <span id="mic-status-text">Voice Protection Active</span>
-                            </div>
-                        </li>
+                        <!-- Clean navigation - voice system removed -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">
                                 <i class="fas fa-sign-in-alt"></i> Admin Login

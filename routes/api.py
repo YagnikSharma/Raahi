@@ -138,7 +138,12 @@ def get_cameras():
 def detect():
     """API endpoint for processing image data from cameras"""
     try:
-        data = request.json
+        # Handle both JSON and form data
+        if request.content_type and 'application/json' in request.content_type:
+            data = request.json
+        else:
+            data = request.form.to_dict()
+            
         if not data or 'image' not in data or 'camera_id' not in data:
             return jsonify({'error': 'Missing required data'}), 400
         
