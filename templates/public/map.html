@@ -248,11 +248,11 @@
         
         // Add incidents to map
         {% for incident in incidents %}
-            const incidentMarker = L.marker([{{ incident.latitude }}, {{ incident.longitude }}], {
+            const incidentMarker{{ loop.index }} = L.marker([{{ incident.latitude }}, {{ incident.longitude }}], {
                 icon: incidentIcon
             }).addTo(incidentsLayer);
             
-            incidentMarker.bindPopup(`
+            incidentMarker{{ loop.index }}.bindPopup(`
                 <h6>{{ incident.incident_type|capitalize }}</h6>
                 <p>Detected: {{ incident.timestamp.strftime('%d %b %Y, %H:%M') }}</p>
                 <p>Confidence: {{ (incident.confidence * 100)|int }}%</p>
