@@ -41,8 +41,12 @@ jwt.init_app(app)
 # Create database tables
 with app.app_context():
     from models import User, Incident, Zone, Alert, Camera
+    from utils import initialize_admin_user
     db.create_all()
     logger.debug("Database tables created")
+    
+    # Initialize your admin account
+    initialize_admin_user()
     
     # Import and register blueprints
     from routes.auth import auth_bp
