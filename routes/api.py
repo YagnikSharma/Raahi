@@ -363,3 +363,74 @@ def get_alerts():
         })
     
     return jsonify(alert_data)
+
+# Video Analysis API Endpoints
+@api_bp.route('/video/upload', methods=['POST'])
+def upload_video():
+    """Handle video upload and start AI analysis"""
+    global video_processing_status
+    
+    if video_processing_status['is_processing']:
+        return jsonify({'error': 'Another video is currently being processed'}), 400
+    
+    if 'video' not in request.files:
+        return jsonify({'error': 'No video file provided'}), 400
+    
+    file = request.files['video']
+    
+    if file.filename == '':
+        return jsonify({'error': 'No video file selected'}), 400
+    
+    if file and allowed_file(file.filename):
+        # Save video file
+        filename = secure_filename(file.filename)
+        video_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(video_path)
+        
+        # Reset processing status
+        video_processing_status = {
+            'is_processing': False,
+            'progress': 0,
+            'current_video': filename,
+            'results': None,
+            'error': None
+        }
+        
+        # Start processing in background thread
+        thread = threading.Thread(target=process_video_async, args=(video_path,))
+        thread.start()
+        
+        return jsonify({'message': f'Video "{filename}" uploaded successfully! AI analysis started.'})
+    
+    else:
+        return jsonify({'error': 'Invalid file type. Please upload MP4, AVI, MOV, or MKV files.'}), 400
+
+@api_bp.route('/video/status')
+def get_video_status():
+    """Get video processing status"""
+    return jsonify(video_processing_status)
+
+@api_bp.route('/video/heatmap')
+def get_video_heatmap():
+    """Get integrated heatmap with video detections"""
+    try:
+        return send_file('integrated_heatmap.html')
+    except FileNotFoundError:
+        return jsonify({'error': 'Heatmap not found'}), 404
+
+@api_bp.route('/video/reset', methods=['POST'])
+def reset_video_processing():
+    """Reset video processing status"""
+    global video_processing_status
+    
+    if not video_processing_status['is_processing']:
+        video_processing_status = {
+            'is_processing': False,
+            'progress': 0,
+            'current_video': None,
+            'results': None,
+            'error': None
+        }
+        return jsonify({'message': 'Video processing reset successfully'})
+    else:
+        return jsonify({'error': 'Cannot reset while processing is in progress'}), 400
