@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Detection | Raahi Safety Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark rounded">
+                <div class="container-fluid">
+                    <span class="navbar-brand">Live Detection</span>
+                    <div class="navbar-nav">
+                        <a class="nav-link" href="{{ url_for('public.map') }}">
+                            <i class="fas fa-map me-2"></i>Safety Map
+                        </a>
+                        <a class="nav-link active" href="{{ url_for('public.live_detection') }}">
+                            <i class="fas fa-video me-2"></i>Live Detection
+                        </a>
+                        {% if current_user.is_authenticated %}
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-camera me-2"></i>Live CCTV Feed
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-light" id="webcamBtn">
+                                <i class="fas fa-laptop me-1"></i>Webcam
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="earthcamBtn">
+                                <i class="fas fa-globe me-1"></i>EarthCam
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="position-relative" style="background: #000;">
+                        <video id="liveVideo" class="w-100" style="height: 400px; object-fit: cover;" autoplay muted></video>
+                        <canvas id="detectionCanvas" class="position-absolute top-0 start-0 w-100" style="height: 400px; pointer-events: none;"></canvas>
+                        
+                        <!-- Detection Status Overlay -->
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span id="detectionStatus" class="badge bg-success fs-6">
+                                <i class="fas fa-circle me-1" style="animation: pulse 2s infinite;"></i>
+                                LIVE DETECTION ACTIVE
+                            </span>
+                        </div>
+                        
+                        <!-- Emergency Alert Overlay -->
+                        <div id="emergencyAlert" class="position-absolute top-50 start-50 translate-middle d-none">
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="min-width: 300px;">
+                                <h4 class="alert-heading">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Emergency Detected!
+                                </h4>
+                                <p id="emergencyMessage" class="mb-0"></p>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button id="startDetection" class="btn btn-success">
+                                <i class="fas fa-play me-1"></i>Start Detection
+                            </button>
+                            <button id="stopDetection" class="btn btn-danger" disabled>
+                                <i class="fas fa-stop me-1"></i>Stop Detection
+                            </button>
+                        </div>
+                        <div>
+                            <span class="badge bg-info">FPS: <span id="fpsCounter">0</span></span>
+                            <span class="badge bg-warning">Detections: <span id="detectionCounter">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Voice Recognition Panel -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-microphone me-2"></i>Voice Emergency Detection
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div id="voiceStatus" class="mb-3">
+                            <i class="fas fa-microphone-slash fa-3x text-muted"></i>
+                            <p class="mt-2">Voice detection inactive</p>
+                        </div>
+                        <button id="toggleVoice" class="btn btn-primary">
+                            <i class="fas fa-microphone me-1"></i>Start Listening
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            Listens for: "help", "save me", "emergency", "fire", "police"
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Detections -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Recent Detections
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="recentDetections" class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                        <!-- Detections will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SOS Modal -->
+<div class="modal fade" id="sosModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Emergency SOS
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p>Emergency detected through voice recognition!</p>
+                <p>Your location is being shared with emergency services.</p>
+                <div class="mb-3">
+                    <label for="sosMessage" class="form-label">Additional Message (Optional):</label>
+                    <textarea id="sosMessage" class="form-control" rows="3" placeholder="Describe the emergency..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmSOS">
+                    <i class="fas fa-phone me-1"></i>Send SOS Alert
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/live-detection.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize live detection system
+        const liveDetection = new LiveDetectionSystem({
+            videoElement: document.getElementById('liveVideo'),
+            canvasElement: document.getElementById('detectionCanvas'),
+            detectionApiUrl: '/api/detect',
+            sosApiUrl: '/api/sos'
+        });
+        
+        // Initialize voice recognition
+        const voiceDetection = new VoiceEmergencyDetection({
+            onEmergencyDetected: function(keyword) {
+                showEmergencyAlert(`Voice emergency detected: "${keyword}"`);
+                showSOSModal();
+            }
+        });
+        
+        // Button event listeners
+        document.getElementById('startDetection').addEventListener('click', () => liveDetection.start());
+        document.getElementById('stopDetection').addEventListener('click', () => liveDetection.stop());
+        document.getElementById('webcamBtn').addEventListener('click', () => liveDetection.useWebcam());
+        document.getElementById('earthcamBtn').addEventListener('click', () => liveDetection.useEarthCam());
+        document.getElementById('toggleVoice').addEventListener('click', () => voiceDetection.toggle());
+        document.getElementById('confirmSOS').addEventListener('click', () => sendSOSAlert());
+        
+        // Auto-start detection
+        liveDetection.start();
+        voiceDetection.start();
+    });
+    
+    function showEmergencyAlert(message) {
+        const alertElement = document.getElementById('emergencyAlert');
+        document.getElementById('emergencyMessage').textContent = message;
+        alertElement.classList.remove('d-none');
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            alertElement.classList.add('d-none');
+        }, 5000);
+    }
+    
+    function showSOSModal() {
+        const modal = new bootstrap.Modal(document.getElementById('sosModal'));
+        modal.show();
+    }
+    
+    function sendSOSAlert() {
+        const message = document.getElementById('sosMessage').value;
+        
+        // Get user location and send SOS
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                fetch('/api/sos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message || 'Voice emergency detected',
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    })
+                }).then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('sosModal')).hide();
+                    alert('SOS alert sent successfully!');
+                });
+            });
+        }
+    }
+</script>
+
+<style>
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.detection-box {
+    position: absolute;
+    border: 2px solid #ff0000;
+    background: rgba(255, 0, 0, 0.1);
+    color: white;
+    font-size: 12px;
+    padding: 2px 5px;
+}
+
+.detection-box.fire { border-color: #ff4444; background: rgba(255, 68, 68, 0.2); }
+.detection-box.weapon { border-color: #ff8800; background: rgba(255, 136, 0, 0.2); }
+.detection-box.person { border-color: #4488ff; background: rgba(68, 136, 255, 0.2); }
+.detection-box.smoke { border-color: #888888; background: rgba(136, 136, 136, 0.2); }
+</style>
+{% endblock %}

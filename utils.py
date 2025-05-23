@@ -54,6 +54,10 @@ def update_zone_safety(latitude, longitude, incident_type=None):
         )
         db.session.add(zone)
     
+    # Ensure zone has a radius value
+    if zone.radius is None:
+        zone.radius = 0.01
+    
     # Get the number of incidents in the zone in the last 24 hours
     recent_incidents = Incident.query.filter(
         Incident.latitude >= zone.latitude - zone.radius,

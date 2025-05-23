@@ -16,4 +16,9 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "opencv-python>=4.11.0.86",
     "openai>=1.82.0",
+    "trafilatura>=2.0.0",
+    "sendgrid>=6.12.2",
+    "flask-dance>=7.1.0",
+    "oauthlib>=3.2.2",
+    "pyjwt>=2.10.1",
 ]

@@ -97,3 +97,8 @@ def safety_info():
 def about():
     # About page with information about Team Garun and the Raahi project
     return render_template('public/about.html')
+
+@public_bp.route('/live-detection')
+def live_detection():
+    """Live CCTV detection page with real-time AI analysis"""
+    return render_template('live_detection.html')
