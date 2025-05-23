@@ -262,14 +262,14 @@
 
         // Add AI Video Detection Results to main Safety Heatmap
         {% if video_detections %}
+            const aiDetectionIcon = L.divIcon({
+                html: '<i class="fas fa-brain" style="color: #ff6b35; font-size: 18px;"></i>',
+                className: 'ai-detection-marker',
+                iconSize: [25, 25],
+                iconAnchor: [12, 12]
+            });
+            
             {% for detection in video_detections %}
-                const aiDetectionIcon = L.divIcon({
-                    html: '<i class="fas fa-brain" style="color: #ff6b35; font-size: 18px;"></i>',
-                    className: 'ai-detection-marker',
-                    iconSize: [25, 25],
-                    iconAnchor: [12, 12]
-                });
-                
                 const aiMarker = L.marker([{{ detection.lat }}, {{ detection.lng }}], {
                     icon: aiDetectionIcon
                 }).addTo(incidentsLayer);
