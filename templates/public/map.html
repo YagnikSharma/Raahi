@@ -89,6 +89,49 @@
                             <p class="mb-0 small" id="safetyDetails">Details about this safety rating.</p>
                         </div>
                     </div>
+                    
+                    <!-- AI Video Analysis Section -->
+                    <div class="mt-4">
+                        <h6><i class="fas fa-video text-danger"></i> AI Video Analysis</h6>
+                        <p class="small text-muted">Upload videos to detect fire, violence, and explosions using AI</p>
+                        
+                        <div id="videoUploadArea" class="border rounded p-3 mb-3" style="border-style: dashed; cursor: pointer;">
+                            <div class="text-center">
+                                <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i>
+                                <p class="mb-1">Drop video here or click to browse</p>
+                                <small class="text-muted">MP4, AVI, MOV, MKV (Max 100MB)</small>
+                                <input type="file" id="videoInput" accept=".mp4,.avi,.mov,.mkv" style="display: none;">
+                            </div>
+                        </div>
+                        
+                        <div id="videoUploadStatus" class="d-none">
+                            <div class="alert alert-info">
+                                <strong>Selected:</strong> <span id="videoFileName"></span>
+                                <button class="btn btn-sm btn-primary ms-2" id="uploadVideoBtn">
+                                    <i class="fas fa-brain"></i> Analyze with AI
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="videoProcessingStatus" class="d-none">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-spinner fa-spin"></i> <span id="processingMessage">Processing video...</span>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div id="videoProgress" class="progress-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="videoResults" class="d-none">
+                            <div class="alert alert-success">
+                                <strong>Analysis Complete!</strong>
+                                <p class="mb-1">Found <span id="detectionCount">0</span> anomalies</p>
+                                <button class="btn btn-sm btn-success" id="viewHeatmapBtn">
+                                    <i class="fas fa-map"></i> View Detection Heatmap
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
