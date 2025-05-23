@@ -241,6 +241,26 @@ def sos_api():
         logger.error(f"Error in SOS API: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@api_bp.route('/emergency-log', methods=['POST'])
+def emergency_log():
+    """API endpoint for logging emergency voice detections"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        # Log emergency detection for analytics
+        current_app.logger.info(f"Emergency voice detection: {data.get('keyword')} at {data.get('timestamp')}")
+        
+        return jsonify({
+            'status': 'logged',
+            'message': 'Emergency instance recorded'
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error logging emergency: {e}")
+        return jsonify({'error': 'Logging failed'}), 500
+
 @api_bp.route('/alerts', methods=['GET'])
 @jwt_required()
 def get_alerts():
