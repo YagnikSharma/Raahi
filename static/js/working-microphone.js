@@ -11,7 +11,7 @@ class WorkingMicrophoneSystem {
         this.audioContext = null;
         this.microphone = null;
         this.analyser = null;
-        
+
         // Emergency keywords that will trigger instant SOS
         this.emergencyKeywords = [
             'help', 'help me', 'i need help',
@@ -19,34 +19,34 @@ class WorkingMicrophoneSystem {
             'emergency', 'urgent',
             'fire', 'call police', 'ambulance'
         ];
-        
+
         this.currentLocation = null;
         this.init();
     }
-    
+
     async init() {
         console.log('🎤 Initializing Working Microphone System...');
-        
+
         // Request microphone permission immediately
         await this.requestMicrophonePermission();
-        
+
         // Initialize speech recognition
         this.initSpeechRecognition();
-        
+
         // Start location tracking
         this.startLocationTracking();
-        
+
         // Add visual indicator
         this.addMicrophoneIndicator();
-        
+
         // Auto-start listening
         setTimeout(() => this.startListening(), 1000);
     }
-    
+
     async requestMicrophonePermission() {
         try {
             console.log('📢 Requesting microphone permission...');
-            
+
             // Request microphone access
             this.micStream = await navigator.mediaDevices.getUserMedia({ 
                 audio: {
@@ -55,12 +55,12 @@ class WorkingMicrophoneSystem {
                     autoGainControl: true
                 } 
             });
-            
+
             console.log('✅ Microphone permission granted!');
-            
+
             // Set up audio visualization
             this.setupAudioVisualization();
-            
+
             return true;
         } catch (error) {
             console.error('❌ Microphone permission denied:', error);
@@ -68,74 +68,74 @@ class WorkingMicrophoneSystem {
             return false;
         }
     }
-    
+
     setupAudioVisualization() {
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             this.microphone = this.audioContext.createMediaStreamSource(this.micStream);
             this.analyser = this.audioContext.createAnalyser();
-            
+
             this.analyser.fftSize = 256;
             this.microphone.connect(this.analyser);
-            
+
             // Start audio level monitoring
             this.monitorAudioLevel();
-            
+
             console.log('🎵 Audio visualization setup complete');
         } catch (error) {
             console.error('Audio context error:', error);
         }
     }
-    
+
     monitorAudioLevel() {
         const bufferLength = this.analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
-        
+
         const checkAudioLevel = () => {
             if (!this.isListening) return;
-            
+
             this.analyser.getByteFrequencyData(dataArray);
-            
+
             // Calculate average audio level
             let sum = 0;
             for (let i = 0; i < bufferLength; i++) {
                 sum += dataArray[i];
             }
             const average = sum / bufferLength;
-            
+
             // Update visual indicator based on audio level
             this.updateMicrophoneIndicator(average);
-            
+
             requestAnimationFrame(checkAudioLevel);
         };
-        
+
         checkAudioLevel();
     }
-    
+
     initSpeechRecognition() {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
             console.error('❌ Speech recognition not supported');
             this.showSpeechRecognitionError();
             return;
         }
-        
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         this.recognition = new SpeechRecognition();
-        
+
         // Configure for emergency detection
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
         this.recognition.lang = 'en-US';
         this.recognition.maxAlternatives = 1;
-        
+
         // Handle speech results
         this.recognition.onresult = (event) => {
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 const transcript = event.results[i][0].transcript.toLowerCase().trim();
                 const confidence = event.results[i][0].confidence || 0.8;
-                
+
                 console.log(`🎤 Heard: "${transcript}" (confidence: ${confidence})`);
-                
+
                 // Check for emergency keywords
                 if (this.detectEmergency(transcript)) {
                     console.log('🚨 EMERGENCY DETECTED!');
@@ -143,11 +143,11 @@ class WorkingMicrophoneSystem {
                 }
             }
         };
-        
+
         // Handle errors and restart
         this.recognition.onerror = (event) => {
             console.log(`Speech recognition error: ${event.error}`);
-            
+
             if (event.error === 'not-allowed') {
                 this.showMicrophoneError();
             } else if (event.error !== 'no-speech') {
@@ -159,7 +159,7 @@ class WorkingMicrophoneSystem {
                 }, 1000);
             }
         };
-        
+
         // Auto-restart when it ends
         this.recognition.onend = () => {
             if (this.isListening) {
@@ -172,10 +172,10 @@ class WorkingMicrophoneSystem {
                 }, 500);
             }
         };
-        
+
         console.log('🎤 Speech recognition initialized');
     }
-    
+
     detectEmergency(transcript) {
         // Check for emergency keywords
         for (const keyword of this.emergencyKeywords) {
@@ -185,13 +185,13 @@ class WorkingMicrophoneSystem {
         }
         return false;
     }
-    
+
     async triggerInstantSOS(detectedPhrase) {
         console.log('🚨 TRIGGERING INSTANT SOS!');
-        
+
         // Show immediate visual feedback
         this.showEmergencyAlert(detectedPhrase);
-        
+
         // Get current location if available
         let location = this.currentLocation;
         if (!location) {
@@ -205,7 +205,7 @@ class WorkingMicrophoneSystem {
                 console.log('Could not get location for emergency');
             }
         }
-        
+
         // Send instant SOS without description
         const sosData = {
             message: `VOICE EMERGENCY: "${detectedPhrase}"`,
@@ -216,17 +216,17 @@ class WorkingMicrophoneSystem {
             auto_triggered: true,
             priority: 'CRITICAL'
         };
-        
+
         try {
             const response = await fetch('/api/sos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(sosData)
             });
-            
+
             if (response.ok) {
                 this.showSOSSuccess();
-                
+
                 // Offer speech-to-text for additional details
                 this.offerSpeechToText();
             } else {
@@ -237,7 +237,7 @@ class WorkingMicrophoneSystem {
             this.showSOSError();
         }
     }
-    
+
     getCurrentLocationFast() {
         return new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(
@@ -247,7 +247,7 @@ class WorkingMicrophoneSystem {
             );
         });
     }
-    
+
     startLocationTracking() {
         if (navigator.geolocation) {
             // Get immediate location
@@ -263,7 +263,7 @@ class WorkingMicrophoneSystem {
                 (error) => console.log('Location error:', error),
                 { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
             );
-            
+
             // Continuous tracking
             navigator.geolocation.watchPosition(
                 (position) => {
@@ -278,13 +278,13 @@ class WorkingMicrophoneSystem {
             );
         }
     }
-    
+
     startListening() {
         if (!this.recognition || !this.micStream) {
             console.error('❌ Cannot start listening - microphone not ready');
             return;
         }
-        
+
         try {
             this.isListening = true;
             this.recognition.start();
@@ -294,7 +294,7 @@ class WorkingMicrophoneSystem {
             console.error('Failed to start speech recognition:', error);
         }
     }
-    
+
     stopListening() {
         this.isListening = false;
         if (this.recognition) {
@@ -303,12 +303,12 @@ class WorkingMicrophoneSystem {
         this.updateIndicatorStatus('MICROPHONE INACTIVE');
         console.log('🎤 Stopped listening');
     }
-    
+
     addMicrophoneIndicator() {
         // Remove existing indicator
         const existing = document.getElementById('mic-indicator');
         if (existing) existing.remove();
-        
+
         // Create new indicator
         const indicator = document.createElement('div');
         indicator.id = 'mic-indicator';
@@ -321,7 +321,7 @@ class WorkingMicrophoneSystem {
                 </div>
             </div>
         `;
-        
+
         // Add styles
         const style = document.createElement('style');
         style.textContent = `
@@ -386,11 +386,11 @@ class WorkingMicrophoneSystem {
         document.head.appendChild(style);
         document.body.appendChild(indicator);
     }
-    
+
     updateMicrophoneIndicator(audioLevel) {
         const indicator = document.getElementById('mic-indicator');
         if (!indicator) return;
-        
+
         const levelFill = indicator.querySelector('.mic-level-fill');
         if (levelFill) {
             // Convert audio level to percentage
@@ -398,16 +398,16 @@ class WorkingMicrophoneSystem {
             levelFill.style.width = `${percentage}%`;
         }
     }
-    
+
     updateIndicatorStatus(status) {
         const indicator = document.getElementById('mic-indicator');
         if (!indicator) return;
-        
+
         const textElement = indicator.querySelector('.mic-text');
         const iconElement = indicator.querySelector('.mic-icon');
-        
+
         if (textElement) textElement.textContent = status;
-        
+
         if (status.includes('LISTENING')) {
             indicator.classList.add('mic-listening');
             indicator.classList.remove('mic-emergency');
@@ -418,10 +418,10 @@ class WorkingMicrophoneSystem {
             indicator.classList.remove('mic-listening', 'mic-emergency');
         }
     }
-    
+
     showEmergencyAlert(phrase) {
         this.updateIndicatorStatus('🚨 EMERGENCY DETECTED!');
-        
+
         // Create emergency overlay
         const alertDiv = document.createElement('div');
         alertDiv.id = 'emergency-overlay';
@@ -434,7 +434,7 @@ class WorkingMicrophoneSystem {
                 <div class="emergency-spinner"></div>
             </div>
         `;
-        
+
         const style = document.createElement('style');
         style.textContent = `
             #emergency-overlay {
@@ -485,7 +485,7 @@ class WorkingMicrophoneSystem {
         `;
         document.head.appendChild(style);
         document.body.appendChild(alertDiv);
-        
+
         // Auto-remove after 5 seconds
         setTimeout(() => {
             if (alertDiv.parentElement) {
@@ -493,20 +493,20 @@ class WorkingMicrophoneSystem {
             }
         }, 5000);
     }
-    
+
     showSOSSuccess() {
         // Remove emergency overlay
         const overlay = document.getElementById('emergency-overlay');
         if (overlay) overlay.remove();
-        
+
         this.showNotification('✅ Emergency SOS sent successfully!', 'success');
         this.updateIndicatorStatus('SOS SENT - HELP IS COMING');
     }
-    
+
     showSOSError() {
         this.showNotification('❌ Failed to send SOS. Please call emergency services directly!', 'error');
     }
-    
+
     offerSpeechToText() {
         const offerDiv = document.createElement('div');
         offerDiv.innerHTML = `
@@ -521,7 +521,7 @@ class WorkingMicrophoneSystem {
                 </button>
             </div>
         `;
-        
+
         const style = document.createElement('style');
         style.textContent = `
             .speech-to-text-offer {
@@ -549,18 +549,18 @@ class WorkingMicrophoneSystem {
         document.head.appendChild(style);
         document.body.appendChild(offerDiv);
     }
-    
+
     startSpeechToText() {
         // Implementation for speech-to-text details
         console.log('Starting speech-to-text for emergency details');
         // This would capture additional details and send them as follow-up
     }
-    
+
     showNotification(message, type) {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
-        
+
         const style = document.createElement('style');
         style.textContent = `
             .notification {
@@ -579,19 +579,19 @@ class WorkingMicrophoneSystem {
         `;
         document.head.appendChild(style);
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             if (notification.parentElement) {
                 notification.remove();
             }
         }, 5000);
     }
-    
+
     showMicrophoneError() {
         this.updateIndicatorStatus('❌ MICROPHONE ACCESS DENIED');
         this.showNotification('Please allow microphone access for emergency detection', 'error');
     }
-    
+
     showSpeechRecognitionError() {
         this.updateIndicatorStatus('❌ SPEECH RECOGNITION NOT SUPPORTED');
         this.showNotification('Speech recognition not supported in this browser', 'error');
