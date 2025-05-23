@@ -42,11 +42,6 @@
                         <a class="nav-link {% if request.endpoint == 'public.incidents' %}active{% endif %}" href="{{ url_for('public.incidents') }}">Incidents</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'public.video_analysis' %}active{% endif %}" href="{{ url_for('public.video_analysis') }}">
-                            <i class="fas fa-video"></i> Video Analysis
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'public.about' %}active{% endif %}" href="{{ url_for('public.about') }}">About</a>
                     </li>
                 </ul>
