@@ -19,21 +19,19 @@
   bottom: 20px;
   right: 20px;
   background: rgba(0, 0, 0, 0.6);
-  padding: 10px;
-  border-radius: 8px;
+  padding: 8px;
+  border-radius: 6px;
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   z-index: 100;
   pointer-events: none;
   backdrop-filter: blur(4px);
-  transition: all 0.3s ease;
-  transform: scale(0.8);
-  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  opacity: 0.9;
 }
 
 #mic-indicator:hover {
-  opacity: 0.3;
-  transform: scale(0.7);
+  opacity: 0.5;
 }
 
 /* Animated pulse for SOS button */
