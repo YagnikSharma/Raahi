@@ -138,12 +138,7 @@ def get_cameras():
 def detect():
     """API endpoint for processing image data from cameras"""
     try:
-        # Handle both JSON and form data
-        if request.content_type and 'application/json' in request.content_type:
-            data = request.json
-        else:
-            data = request.form.to_dict()
-            
+        data = request.json
         if not data or 'image' not in data or 'camera_id' not in data:
             return jsonify({'error': 'Missing required data'}), 400
         
@@ -240,26 +235,6 @@ def sos_api():
     except Exception as e:
         logger.error(f"Error in SOS API: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
-@api_bp.route('/emergency-log', methods=['POST'])
-def emergency_log():
-    """API endpoint for logging emergency voice detections"""
-    try:
-        data = request.json
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        
-        # Log emergency detection for analytics
-        current_app.logger.info(f"Emergency voice detection: {data.get('keyword')} at {data.get('timestamp')}")
-        
-        return jsonify({
-            'status': 'logged',
-            'message': 'Emergency instance recorded'
-        })
-        
-    except Exception as e:
-        current_app.logger.error(f"Error logging emergency: {e}")
-        return jsonify({'error': 'Logging failed'}), 500
 
 @api_bp.route('/alerts', methods=['GET'])
 @jwt_required()

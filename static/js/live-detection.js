@@ -347,7 +347,112 @@ class LiveDetectionSystem {
     }
 }
 
-// Voice Emergency Detection removed - keeping it simple as requested
+/**
+ * Voice Emergency Detection System
+ */
+class VoiceEmergencyDetection {
+    constructor(options = {}) {
+        this.onEmergencyDetected = options.onEmergencyDetected || (() => {});
+        this.isListening = false;
+        this.recognition = null;
+        
+        this.emergencyKeywords = [
+            'help', 'save me', 'emergency', 'fire', 'police', 
+            'ambulance', 'attack', 'robbery', 'accident'
+        ];
+        
+        this.initSpeechRecognition();
+    }
+    
+    initSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window) {
+            this.recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            this.recognition = new SpeechRecognition();
+        } else {
+            console.warn('Speech recognition not supported');
+            return;
+        }
+        
+        this.recognition.continuous = true;
+        this.recognition.interimResults = true;
+        this.recognition.lang = 'en-US';
+        
+        this.recognition.onresult = (event) => {
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript.toLowerCase();
+                this.checkForEmergencyKeywords(transcript);
+            }
+        };
+        
+        this.recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+        };
+        
+        this.recognition.onend = () => {
+            if (this.isListening) {
+                // Restart recognition if it was stopped unexpectedly
+                setTimeout(() => this.recognition.start(), 1000);
+            }
+        };
+    }
+    
+    start() {
+        if (!this.recognition || this.isListening) return;
+        
+        this.isListening = true;
+        this.recognition.start();
+        this.updateUI();
+    }
+    
+    stop() {
+        if (!this.recognition || !this.isListening) return;
+        
+        this.isListening = false;
+        this.recognition.stop();
+        this.updateUI();
+    }
+    
+    toggle() {
+        if (this.isListening) {
+            this.stop();
+        } else {
+            this.start();
+        }
+    }
+    
+    checkForEmergencyKeywords(transcript) {
+        for (const keyword of this.emergencyKeywords) {
+            if (transcript.includes(keyword)) {
+                console.log(`Emergency keyword detected: ${keyword}`);
+                this.onEmergencyDetected(keyword);
+                break;
+            }
+        }
+    }
+    
+    updateUI() {
+        const status = document.getElementById('voiceStatus');
+        const button = document.getElementById('toggleVoice');
+        
+        if (this.isListening) {
+            status.innerHTML = `
+                <i class="fas fa-microphone fa-3x text-success" style="animation: pulse 2s infinite;"></i>
+                <p class="mt-2 text-success">Listening for emergencies...</p>
+            `;
+            button.innerHTML = '<i class="fas fa-microphone-slash me-1"></i>Stop Listening';
+            button.className = 'btn btn-danger';
+        } else {
+            status.innerHTML = `
+                <i class="fas fa-microphone-slash fa-3x text-muted"></i>
+                <p class="mt-2">Voice detection inactive</p>
+            `;
+            button.innerHTML = '<i class="fas fa-microphone me-1"></i>Start Listening';
+            button.className = 'btn btn-primary';
+        }
+    }
+}
 
 // Export for use in other scripts
 window.LiveDetectionSystem = LiveDetectionSystem;
+window.VoiceEmergencyDetection = VoiceEmergencyDetection;

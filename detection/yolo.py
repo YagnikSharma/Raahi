@@ -7,78 +7,68 @@ from flask import current_app
 
 logger = logging.getLogger(__name__)
 
-# AI Detection for the EXACT three anomaly clusters requested
-class AnomalyDetector:
+# Mock YOLO model for demonstration purposes
+class MockYOLO:
     def __init__(self):
-        # EXACT three anomaly clusters as specified by user
-        self.anomaly_clusters = {
-            'violence': ['assault', 'abuse', 'fight', 'attack', 'aggression'],
-            'emergency': ['fire', 'explosion', 'smoke', 'flames', 'blast'],
-            'visibility': ['darkness', 'no_visibility', 'poor_lighting', 'blackout']
-        }
+        self.classes = [
+            'person', 'bicycle', 'car', 'motorcycle', 'bus', 'truck',
+            'fire', 'smoke', 'weapon', 'fight', 'darkness'
+        ]
+    
+    def detect(self, image_data=None):
+        """Mock object detection - generates simulated detections
+        without requiring OpenCV"""
         
-    def detect(self, image_data=None, source_url=None):
-        """Detect the three specific anomaly clusters from live feeds"""
-        
-        # Real anomaly detection simulation based on EarthCam feed analysis
+        # For demonstration purposes, randomly detect some objects
+        # In a real implementation, this would use actual CV processing
         detections = []
         
-        # 20% chance of detecting actual anomalies (realistic for urban monitoring)
-        if random.random() < 0.2:
-            # Pick random cluster based on real-world probability
-            cluster_weights = {'violence': 0.3, 'emergency': 0.2, 'visibility': 0.5}
-            cluster = random.choices(
-                list(cluster_weights.keys()), 
-                weights=list(cluster_weights.values())
-            )[0]
+        # Mock image dimensions
+        width, height = 640, 480
+        
+        # Add random detections for demo
+        if random.random() < 0.3:  # 30% chance of detection
+            # Select a random class
+            class_name = random.choice(self.classes)
+            confidence = random.uniform(0.3, 0.9)
             
-            anomaly_type = random.choice(self.anomaly_clusters[cluster])
+            # Generate random box coordinates
+            x1 = random.uniform(0, width * 0.7)
+            y1 = random.uniform(0, height * 0.7)
+            box_width = random.uniform(width * 0.1, width * 0.3)
+            box_height = random.uniform(height * 0.1, height * 0.3)
+            x2 = min(x1 + box_width, width)
+            y2 = min(y1 + box_height, height)
             
-            # Realistic confidence scores
-            confidence = random.uniform(0.65, 0.92)
-            
-            # Detection location in frame
-            x = random.uniform(0.1, 0.6)
-            y = random.uniform(0.1, 0.6)
-            w = random.uniform(0.15, 0.35)
-            h = random.uniform(0.15, 0.35)
-            
-            detection = {
-                'cluster': cluster,
-                'anomaly_type': anomaly_type,
+            detections.append({
+                'class': class_name,
                 'confidence': confidence,
-                'bbox': [x, y, w, h],
-                'timestamp': datetime.now().isoformat(),
-                'severity': self._get_severity(cluster, confidence),
-                'source': source_url or 'earthcam_feed'
-            }
-            
-            detections.append(detection)
+                'bbox': [x1, y1, x2, y2]
+            })
+        
+        # Randomly add darkness detection
+        if random.random() < 0.15:  # 15% chance of darkness
+            detections.append({
+                'class': 'darkness',
+                'confidence': random.uniform(0.3, 0.8),
+                'bbox': [0, 0, width, height]
+            })
         
         return detections
-    
-    def _get_severity(self, cluster, confidence):
-        """Determine severity based on cluster and confidence"""
-        if cluster == 'emergency':
-            return 'critical' if confidence > 0.8 else 'high'
-        elif cluster == 'violence':
-            return 'high' if confidence > 0.8 else 'medium'
-        else:  # visibility
-            return 'medium' if confidence > 0.8 else 'low'
 
 # Initialize global YOLO model
 yolo_model = None
 
 def get_yolo_model():
-    """Get or initialize the anomaly detection model"""
+    """Get or initialize the YOLO model"""
     global yolo_model
     if yolo_model is None:
         try:
-            yolo_model = AnomalyDetector()  # Using the three-cluster anomaly detector
-            logger.info("Anomaly detection model initialized for violence, emergency, visibility")
+            yolo_model = MockYOLO()  # Using mock model for demonstration
+            logger.info("Mock YOLO model initialized")
         except Exception as e:
-            logger.error(f"Error initializing anomaly model: {str(e)}")
-            yolo_model = AnomalyDetector()  # Fallback to anomaly detector
+            logger.error(f"Error initializing YOLO model: {str(e)}")
+            yolo_model = MockYOLO()  # Fallback to mock model
     
     return yolo_model
 
