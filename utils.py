@@ -101,14 +101,57 @@ def create_alert(alert_type, message, latitude=None, longitude=None, incident_id
 
 def initialize_admin_user():
     """Initialize the default admin user if none exists"""
-    admin_email = current_app.config.get('ADMIN_EMAIL')
+    from models import User
+    from app import db
+    
+    # Set up your specific admin account
+    admin_email = 'yagniksharma47@gmail.com'
+    admin_username = 'yagniksharma47'
+    admin_password = 'ynk@123'
+    
     if User.query.filter_by(email=admin_email).first() is None:
         admin = User(
-            username='admin',
+            username=admin_username,
             email=admin_email,
             is_admin=True
         )
-        admin.set_password(current_app.config.get('DEFAULT_ADMIN_PASSWORD'))
+        admin.set_password(admin_password)
         db.session.add(admin)
         db.session.commit()
-        logger.info(f"Admin user created with email: {admin_email}")
+        logger.info(f"Primary admin user created: {admin_email}")
+
+def send_admin_confirmation_email(new_admin_email, admin_name):
+    """Send email to primary admin for new admin account confirmation"""
+    from flask_mail import Message
+    from app import mail
+    
+    try:
+        msg = Message(
+            'New Admin Account Request - Raahi Safety Platform',
+            recipients=['yagniksharma47@gmail.com'],
+            sender='noreply@raahi.com'
+        )
+        
+        msg.body = f"""
+        New Admin Account Request
+        
+        A new admin account has been requested for the Raahi Safety Platform:
+        
+        Email: {new_admin_email}
+        Name: {admin_name}
+        Timestamp: {datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}
+        
+        Please review and approve this request in the admin dashboard.
+        
+        Best regards,
+        Raahi Safety Platform
+        Team Garun
+        """
+        
+        mail.send(msg)
+        logger.info(f"Admin confirmation email sent for: {new_admin_email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send admin confirmation email: {str(e)}")
+        return False
