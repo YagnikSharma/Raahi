@@ -172,25 +172,17 @@
             sosApiUrl: '/api/sos'
         });
         
-        // Initialize voice recognition
-        const voiceDetection = new VoiceEmergencyDetection({
-            onEmergencyDetected: function(keyword) {
-                showEmergencyAlert(`Voice emergency detected: "${keyword}"`);
-                showSOSModal();
-            }
-        });
+        // Voice recognition removed - keeping it simple
         
         // Button event listeners
         document.getElementById('startDetection').addEventListener('click', () => liveDetection.start());
         document.getElementById('stopDetection').addEventListener('click', () => liveDetection.stop());
         document.getElementById('webcamBtn').addEventListener('click', () => liveDetection.useWebcam());
         document.getElementById('earthcamBtn').addEventListener('click', () => liveDetection.useEarthCam());
-        document.getElementById('toggleVoice').addEventListener('click', () => voiceDetection.toggle());
         document.getElementById('confirmSOS').addEventListener('click', () => sendSOSAlert());
         
         // Auto-start detection
         liveDetection.start();
-        voiceDetection.start();
     });
     
     function showEmergencyAlert(message) {
