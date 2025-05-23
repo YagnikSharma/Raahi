@@ -214,8 +214,12 @@ class AnomalyDetector:
         frame_number = 0
         
         # Prepare video writer for output with bounding boxes
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out_video = cv2.VideoWriter('output.mp4', fourcc, fps, (width, height))
+        try:
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out_video = cv2.VideoWriter('output.mp4', fourcc, fps, (width, height))
+        except:
+            # Fallback if codec issues
+            out_video = None
         
         while True:
             ret, frame = cap.read()
@@ -234,7 +238,8 @@ class AnomalyDetector:
             
             # Draw bounding boxes on frame
             annotated_frame = self._draw_detections(frame, detections)
-            out_video.write(annotated_frame)
+            if out_video:
+                out_video.write(annotated_frame)
             
             # Progress callback
             if progress_callback:
@@ -244,7 +249,8 @@ class AnomalyDetector:
             frame_number += 1
         
         cap.release()
-        out_video.release()
+        if out_video:
+            out_video.release()
         
         # Generate summary
         summary = self._generate_summary(all_detections)
