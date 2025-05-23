@@ -179,8 +179,8 @@
             zoneCircle.bindPopup(`
                 <h6>Safety Zone</h6>
                 <p>Safety Level: 
-                    <span class="badge bg-${'success' if zone.safety_level == 0 else 'warning' if zone.safety_level == 1 else 'orange' if zone.safety_level == 2 else 'danger'}">
-                        ${['Safe', 'Caution', 'High Caution', 'Unsafe'][{{ zone.safety_level }}]}
+                    <span class="badge bg-{{ 'success' if zone.safety_level == 0 else 'warning' if zone.safety_level == 1 else 'orange' if zone.safety_level == 2 else 'danger' }}">
+                        {{ ['Safe', 'Caution', 'High Caution', 'Unsafe'][zone.safety_level] }}
                     </span>
                 </p>
                 <p>Incident Count: {{ zone.incident_count }}</p>

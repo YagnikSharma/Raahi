@@ -102,3 +102,8 @@ def about():
 def live_detection():
     """Live CCTV detection page with real-time AI analysis"""
     return render_template('live_detection.html')
+
+@public_bp.route('/video-analysis')
+def video_analysis():
+    """Video anomaly detection page"""
+    return render_template('video_upload.html')
