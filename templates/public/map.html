@@ -259,6 +259,30 @@
                 <p>Status: {{ 'Verified' if incident.is_verified else 'Unverified' }}</p>
             `);
         {% endfor %}
+
+        // Add AI Video Detection Results to main Safety Heatmap
+        {% if video_detections %}
+            {% for detection in video_detections %}
+                const aiDetectionIcon = L.divIcon({
+                    html: '<i class="fas fa-brain" style="color: #ff6b35; font-size: 18px;"></i>',
+                    className: 'ai-detection-marker',
+                    iconSize: [25, 25],
+                    iconAnchor: [12, 12]
+                });
+                
+                const aiMarker = L.marker([{{ detection.lat }}, {{ detection.lng }}], {
+                    icon: aiDetectionIcon
+                }).addTo(incidentsLayer);
+                
+                aiMarker.bindPopup(`
+                    <h6><i class="fas fa-brain text-primary"></i> AI Video Detection</h6>
+                    <p><strong>Type:</strong> {{ detection.type|title }}</p>
+                    <p><strong>Confidence:</strong> {{ (detection.confidence * 100)|round }}%</p>
+                    <p><strong>Description:</strong> {{ detection.description }}</p>
+                    <p><small class="text-muted">Detected by AI video analysis</small></p>
+                `);
+            {% endfor %}
+        {% endif %}
         
         // Fetch all cameras and add to map
         fetch('/api/cameras')

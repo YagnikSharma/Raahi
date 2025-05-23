@@ -175,10 +175,12 @@ class AIVideoDetector:
             response_text = response.choices[0].message.content
             result = json.loads(response_text)
             
-            # Process detections
+            # Process detections - limit to 2-3 high-confidence ones
             detections = []
+            high_confidence_detections = []
+            
             for detection in result.get('detections', []):
-                if detection['type'] in self.target_classes:
+                if detection['type'] in self.target_classes and detection['confidence'] > 0.75:
                     # Convert bbox to pixel coordinates
                     height, width = frame.shape[:2]
                     bbox = detection.get('bbox', [0, 0, 100, 100])
@@ -196,7 +198,11 @@ class AIVideoDetector:
                             int(bbox[3] * height / 1000)  # y2
                         ]
                     }
-                    detections.append(detection_data)
+                    high_confidence_detections.append(detection_data)
+            
+            # Sort by confidence and take only top 2-3
+            high_confidence_detections.sort(key=lambda x: x['confidence'], reverse=True)
+            detections = high_confidence_detections[:3]  # Limit to max 3 detections
             
             return detections
             

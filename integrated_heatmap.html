@@ -17,7 +17,7 @@
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
-                #map_39510d619e51bdc3d9021300f546ceb0 {
+                #map_fe4fc9a971474b113a988fff350cee31 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -61,23 +61,25 @@
                     font-size:14px; padding: 10px">
         <h4>Detection Legend</h4>
         
-            <p><span style="color:#FFA500; font-size:18px;">●</span> Violence: 1</p>
+            <p><span style="color:#8B0000; font-size:18px;">●</span> Explosion: 9</p>
+            
+            <p><span style="color:#FF0000; font-size:18px;">●</span> Fire: 22</p>
             
         <p><span style="color:green; font-size:18px;">●</span> Safe Zones</p>
         <p><span style="color:red; font-size:18px;">●</span> Unsafe Zones</p>
         </div>
         
     
-            <div class="folium-map" id="map_39510d619e51bdc3d9021300f546ceb0" ></div>
+            <div class="folium-map" id="map_fe4fc9a971474b113a988fff350cee31" ></div>
         
 </body>
 <script>
     
     
-            var map_39510d619e51bdc3d9021300f546ceb0 = L.map(
-                "map_39510d619e51bdc3d9021300f546ceb0",
+            var map_fe4fc9a971474b113a988fff350cee31 = L.map(
+                "map_fe4fc9a971474b113a988fff350cee31",
                 {
-                    center: [28.561461224796307, 77.13172925158935],
+                    center: [28.613254350065045, 77.19684491028153],
                     crs: L.CRS.EPSG3857,
                     ...{
   "zoom": 12,
@@ -92,7 +94,7 @@
 
         
     
-            var tile_layer_0d8f3751dce96df561ae47f5d0f53faf = L.tileLayer(
+            var tile_layer_33a3ab5290292c427c6cc9faf1b1723a = L.tileLayer(
                 "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                 {
   "minZoom": 0,
@@ -109,11 +111,11 @@
             );
         
     
-            tile_layer_0d8f3751dce96df561ae47f5d0f53faf.addTo(map_39510d619e51bdc3d9021300f546ceb0);
+            tile_layer_33a3ab5290292c427c6cc9faf1b1723a.addTo(map_fe4fc9a971474b113a988fff350cee31);
         
     
-            var heat_map_80c8a6a00dc7948d9f6a3731b55c1814 = L.heatLayer(
-                [[28.561461224796307, 77.13172925158935, 0.9]],
+            var heat_map_5b3ec479776c9b450a7c5b754e6b4a58 = L.heatLayer(
+                [[28.69468281259596, 77.17075231144356, 0.9], [28.611363959681665, 77.20796839697441, 0.95], [28.614420192600125, 77.24035910143695, 0.95], [28.584402273277867, 77.15746495402091, 0.9], [28.673066586287018, 77.18870114751364, 0.95], [28.619709961696408, 77.21906556248535, 0.95], [28.6773847725583, 77.18997600635, 0.95], [28.650209196148037, 77.16285543869614, 0.95], [28.55704455511299, 77.28786808620818, 0.95], [28.699264291413108, 77.1970699656883, 0.95], [28.648200902710517, 77.23216579161237, 0.95], [28.63303754668953, 77.21416540069323, 0.95], [28.59987271943052, 77.12993325763117, 0.95], [28.609873633671732, 77.14524697340755, 0.95], [28.6245984811828, 77.16395865245659, 0.95], [28.605011971893727, 77.27347315942842, 0.9], [28.553984221750962, 77.21132577315825, 0.95], [28.62613541361376, 77.18781868239611, 0.9], [28.668552283940713, 77.27556539833654, 0.9], [28.602565455967422, 77.1643876805471, 0.95], [28.686318547906783, 77.21787114562214, 0.9], [28.535083931063447, 77.1181763670795, 0.95], [28.53170865856906, 77.14767294453942, 0.95], [28.529670289176313, 77.25942901813366, 0.95], [28.526074739677444, 77.15909675685641, 0.95], [28.556742467221607, 77.1193140989732, 0.9], [28.599462989108538, 77.17666959129394, 0.95], [28.670353736125897, 77.21883671544586, 0.95], [28.66120889288083, 77.26303698045724, 0.9], [28.612685935522368, 77.22058033597749, 0.95], [28.548193432540785, 77.18138652386335, 0.9]],
                 {
   "minOpacity": 0.5,
   "maxZoom": 1,
@@ -130,27 +132,717 @@
             );
         
     
-            heat_map_80c8a6a00dc7948d9f6a3731b55c1814.addTo(map_39510d619e51bdc3d9021300f546ceb0);
+            heat_map_5b3ec479776c9b450a7c5b754e6b4a58.addTo(map_fe4fc9a971474b113a988fff350cee31);
         
     
-            var circle_marker_195e944bd88b9d0358c56d15fce1105e = L.circleMarker(
-                [28.561461224796307, 77.13172925158935],
-                {"bubblingMouseEvents": true, "color": "#FFA500", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FFA500", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
-            ).addTo(map_39510d619e51bdc3d9021300f546ceb0);
+            var circle_marker_caf3528fa3f9f62a3b6d1dd1cb06d3ae = L.circleMarker(
+                [28.69468281259596, 77.17075231144356],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
         
     
-        var popup_abd387054e04268edf58f9e0cf697f08 = L.popup({
+        var popup_8c186b052d1d2f3b52b3502296812718 = L.popup({
   "maxWidth": 250,
 });
 
         
             
-                var html_8460a9de11ee3e4c8fdf70c3f366ea75 = $(`<div id="html_8460a9de11ee3e4c8fdf70c3f366ea75" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Violence<br>                     Confidence: 90%<br>                     Description: Two individuals are engaged in an aggressive confrontation<br>                     Frame: 480<br>                     Time: 16.0s                     </div>`)[0];
-                popup_abd387054e04268edf58f9e0cf697f08.setContent(html_8460a9de11ee3e4c8fdf70c3f366ea75);
+                var html_6bcd21d4ec528255b7ae70bb42991248 = $(`<div id="html_6bcd21d4ec528255b7ae70bb42991248" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 90%<br>                     Description: Fire and debris visible from vehicle explosion on highway<br>                     Frame: 210<br>                     Time: 7.0s                     </div>`)[0];
+                popup_8c186b052d1d2f3b52b3502296812718.setContent(html_6bcd21d4ec528255b7ae70bb42991248);
             
         
 
-        circle_marker_195e944bd88b9d0358c56d15fce1105e.bindPopup(popup_abd387054e04268edf58f9e0cf697f08)
+        circle_marker_caf3528fa3f9f62a3b6d1dd1cb06d3ae.bindPopup(popup_8c186b052d1d2f3b52b3502296812718)
+        ;
+
+        
+    
+    
+            var circle_marker_eb03e41943b0247b91586fedc43e735f = L.circleMarker(
+                [28.611363959681665, 77.20796839697441],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_4acd6bc82bc387f5321b28901d182021 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_cd9edad887753b4acdceb0d6a67a5e7b = $(`<div id="html_cd9edad887753b4acdceb0d6a67a5e7b" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 95%<br>                     Description: Visible explosion with debris on highway<br>                     Frame: 240<br>                     Time: 8.0s                     </div>`)[0];
+                popup_4acd6bc82bc387f5321b28901d182021.setContent(html_cd9edad887753b4acdceb0d6a67a5e7b);
+            
+        
+
+        circle_marker_eb03e41943b0247b91586fedc43e735f.bindPopup(popup_4acd6bc82bc387f5321b28901d182021)
+        ;
+
+        
+    
+    
+            var circle_marker_92bcdf1be87e118962ce9d5f65ea5ea9 = L.circleMarker(
+                [28.614420192600125, 77.24035910143695],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_e974c6d2845643d0c664736be45ee14b = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_3412346a56afcc580ea266f6438b0852 = $(`<div id="html_3412346a56afcc580ea266f6438b0852" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Visible flames and smoke in the highway area<br>                     Frame: 270<br>                     Time: 9.0s                     </div>`)[0];
+                popup_e974c6d2845643d0c664736be45ee14b.setContent(html_3412346a56afcc580ea266f6438b0852);
+            
+        
+
+        circle_marker_92bcdf1be87e118962ce9d5f65ea5ea9.bindPopup(popup_e974c6d2845643d0c664736be45ee14b)
+        ;
+
+        
+    
+    
+            var circle_marker_6c787047868f3404b77215bae6501399 = L.circleMarker(
+                [28.584402273277867, 77.15746495402091],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_aaa8d744942ea7674e8edc7842cab373 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_fa9bfc8d81650a1796081eb7b148aaf1 = $(`<div id="html_fa9bfc8d81650a1796081eb7b148aaf1" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 90%<br>                     Description: Large plume of smoke and debris from an explosion<br>                     Frame: 270<br>                     Time: 9.0s                     </div>`)[0];
+                popup_aaa8d744942ea7674e8edc7842cab373.setContent(html_fa9bfc8d81650a1796081eb7b148aaf1);
+            
+        
+
+        circle_marker_6c787047868f3404b77215bae6501399.bindPopup(popup_aaa8d744942ea7674e8edc7842cab373)
+        ;
+
+        
+    
+    
+            var circle_marker_4ef0cb07cc60fcb6009957a62fff3f04 = L.circleMarker(
+                [28.673066586287018, 77.18870114751364],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_6eccbf0412667482aa160f2d702d894e = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_e8a09dd0964f1dc71dd573b53f7cb86a = $(`<div id="html_e8a09dd0964f1dc71dd573b53f7cb86a" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and smoke visible from a vehicle on the road<br>                     Frame: 300<br>                     Time: 10.0s                     </div>`)[0];
+                popup_6eccbf0412667482aa160f2d702d894e.setContent(html_e8a09dd0964f1dc71dd573b53f7cb86a);
+            
+        
+
+        circle_marker_4ef0cb07cc60fcb6009957a62fff3f04.bindPopup(popup_6eccbf0412667482aa160f2d702d894e)
+        ;
+
+        
+    
+    
+            var circle_marker_24b840dd4f15e2afbd36a2cff8332171 = L.circleMarker(
+                [28.619709961696408, 77.21906556248535],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_43dd70dc4b2c91d132624ebbac1ebf40 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_62037b8edaad2644461caa8c358671ad = $(`<div id="html_62037b8edaad2644461caa8c358671ad" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and thick black smoke visible on the highway.<br>                     Frame: 330<br>                     Time: 11.0s                     </div>`)[0];
+                popup_43dd70dc4b2c91d132624ebbac1ebf40.setContent(html_62037b8edaad2644461caa8c358671ad);
+            
+        
+
+        circle_marker_24b840dd4f15e2afbd36a2cff8332171.bindPopup(popup_43dd70dc4b2c91d132624ebbac1ebf40)
+        ;
+
+        
+    
+    
+            var circle_marker_7c97c016a5a067a31550a9e67cc0f7a4 = L.circleMarker(
+                [28.6773847725583, 77.18997600635],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_cfc4e194518f8431a18999b4e5751e1e = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_bbb04b6b544511b1ba8ea847adcabd48 = $(`<div id="html_bbb04b6b544511b1ba8ea847adcabd48" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and smoke visible on the highway<br>                     Frame: 360<br>                     Time: 12.0s                     </div>`)[0];
+                popup_cfc4e194518f8431a18999b4e5751e1e.setContent(html_bbb04b6b544511b1ba8ea847adcabd48);
+            
+        
+
+        circle_marker_7c97c016a5a067a31550a9e67cc0f7a4.bindPopup(popup_cfc4e194518f8431a18999b4e5751e1e)
+        ;
+
+        
+    
+    
+            var circle_marker_a6aed0a0bb2a8c6177170fac4d30db2e = L.circleMarker(
+                [28.650209196148037, 77.16285543869614],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_5235670a6a7d43ae29b4538446950d41 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_547f5195a66e8d53ed75dbb421a1765b = $(`<div id="html_547f5195a66e8d53ed75dbb421a1765b" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and thick black smoke visible, indicating a fire.<br>                     Frame: 390<br>                     Time: 13.0s                     </div>`)[0];
+                popup_5235670a6a7d43ae29b4538446950d41.setContent(html_547f5195a66e8d53ed75dbb421a1765b);
+            
+        
+
+        circle_marker_a6aed0a0bb2a8c6177170fac4d30db2e.bindPopup(popup_5235670a6a7d43ae29b4538446950d41)
+        ;
+
+        
+    
+    
+            var circle_marker_cba0013529bdd97228b26eb99dd1e0a8 = L.circleMarker(
+                [28.55704455511299, 77.28786808620818],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_cce459efef5ffe1b37d248f893198bcd = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_32b87eb8ce8e7b522046013dc216ba90 = $(`<div id="html_32b87eb8ce8e7b522046013dc216ba90" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and black smoke visible on the highway.<br>                     Frame: 420<br>                     Time: 14.0s                     </div>`)[0];
+                popup_cce459efef5ffe1b37d248f893198bcd.setContent(html_32b87eb8ce8e7b522046013dc216ba90);
+            
+        
+
+        circle_marker_cba0013529bdd97228b26eb99dd1e0a8.bindPopup(popup_cce459efef5ffe1b37d248f893198bcd)
+        ;
+
+        
+    
+    
+            var circle_marker_d1fd266352dbed92105795b9f5435170 = L.circleMarker(
+                [28.699264291413108, 77.1970699656883],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_b869c85b01806e203385ae17a6714677 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_8b2fcdbe4ba02ce85d418aab4591540a = $(`<div id="html_8b2fcdbe4ba02ce85d418aab4591540a" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames visible in the middle of the highway<br>                     Frame: 450<br>                     Time: 15.0s                     </div>`)[0];
+                popup_b869c85b01806e203385ae17a6714677.setContent(html_8b2fcdbe4ba02ce85d418aab4591540a);
+            
+        
+
+        circle_marker_d1fd266352dbed92105795b9f5435170.bindPopup(popup_b869c85b01806e203385ae17a6714677)
+        ;
+
+        
+    
+    
+            var circle_marker_850af4c03799f090c894b1fbf2b1a3cd = L.circleMarker(
+                [28.648200902710517, 77.23216579161237],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_3cd05f6324a86317dbf062fc45306d46 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_8124eacb0072c227345370a7e98e2a64 = $(`<div id="html_8124eacb0072c227345370a7e98e2a64" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and thick smoke visible on the highway<br>                     Frame: 480<br>                     Time: 16.0s                     </div>`)[0];
+                popup_3cd05f6324a86317dbf062fc45306d46.setContent(html_8124eacb0072c227345370a7e98e2a64);
+            
+        
+
+        circle_marker_850af4c03799f090c894b1fbf2b1a3cd.bindPopup(popup_3cd05f6324a86317dbf062fc45306d46)
+        ;
+
+        
+    
+    
+            var circle_marker_05562da8d6189ed55c90fec00eb99af2 = L.circleMarker(
+                [28.63303754668953, 77.21416540069323],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_2eb7b5f7cfa9473be6aae869212f9c2b = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_239ef851b932255ccdde8fea55baa694 = $(`<div id="html_239ef851b932255ccdde8fea55baa694" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and thick black smoke on a highway<br>                     Frame: 510<br>                     Time: 17.0s                     </div>`)[0];
+                popup_2eb7b5f7cfa9473be6aae869212f9c2b.setContent(html_239ef851b932255ccdde8fea55baa694);
+            
+        
+
+        circle_marker_05562da8d6189ed55c90fec00eb99af2.bindPopup(popup_2eb7b5f7cfa9473be6aae869212f9c2b)
+        ;
+
+        
+    
+    
+            var circle_marker_50f3fd463a84e0edaf93fa0b3f7a2d0d = L.circleMarker(
+                [28.59987271943052, 77.12993325763117],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_cad7ee73434328349992244bd6a226da = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_3389c13c8300e371785f68ff2cf24705 = $(`<div id="html_3389c13c8300e371785f68ff2cf24705" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and thick smoke visible from a vehicle on the road<br>                     Frame: 540<br>                     Time: 18.0s                     </div>`)[0];
+                popup_cad7ee73434328349992244bd6a226da.setContent(html_3389c13c8300e371785f68ff2cf24705);
+            
+        
+
+        circle_marker_50f3fd463a84e0edaf93fa0b3f7a2d0d.bindPopup(popup_cad7ee73434328349992244bd6a226da)
+        ;
+
+        
+    
+    
+            var circle_marker_3d3dc720b986bb44ea46ca35216eb0cf = L.circleMarker(
+                [28.609873633671732, 77.14524697340755],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_91f49b96a549050100decb0f94e3628e = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_2aff882c7447c94f759f829e1f6a6050 = $(`<div id="html_2aff882c7447c94f759f829e1f6a6050" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large fire with thick black smoke on the highway<br>                     Frame: 570<br>                     Time: 19.0s                     </div>`)[0];
+                popup_91f49b96a549050100decb0f94e3628e.setContent(html_2aff882c7447c94f759f829e1f6a6050);
+            
+        
+
+        circle_marker_3d3dc720b986bb44ea46ca35216eb0cf.bindPopup(popup_91f49b96a549050100decb0f94e3628e)
+        ;
+
+        
+    
+    
+            var circle_marker_f697393e18685e0f8d87f181e6f63855 = L.circleMarker(
+                [28.6245984811828, 77.16395865245659],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_79d875566108dd7db8b6cd20e834bc5c = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_911c9950dc5f743f6a178d46dd923ae0 = $(`<div id="html_911c9950dc5f743f6a178d46dd923ae0" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and smoke visible on the highway<br>                     Frame: 600<br>                     Time: 20.0s                     </div>`)[0];
+                popup_79d875566108dd7db8b6cd20e834bc5c.setContent(html_911c9950dc5f743f6a178d46dd923ae0);
+            
+        
+
+        circle_marker_f697393e18685e0f8d87f181e6f63855.bindPopup(popup_79d875566108dd7db8b6cd20e834bc5c)
+        ;
+
+        
+    
+    
+            var circle_marker_fbebbcc6af6dc6bb140246f7192708dc = L.circleMarker(
+                [28.605011971893727, 77.27347315942842],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_47932a71011e605f38e6c61e913afbe5 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_f7f00586b32e7f23f4670e8c499598aa = $(`<div id="html_f7f00586b32e7f23f4670e8c499598aa" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 90%<br>                     Description: Large smoke and flames visible on the left side of the highway<br>                     Frame: 630<br>                     Time: 21.0s                     </div>`)[0];
+                popup_47932a71011e605f38e6c61e913afbe5.setContent(html_f7f00586b32e7f23f4670e8c499598aa);
+            
+        
+
+        circle_marker_fbebbcc6af6dc6bb140246f7192708dc.bindPopup(popup_47932a71011e605f38e6c61e913afbe5)
+        ;
+
+        
+    
+    
+            var circle_marker_93c7a3051d80cd382d2ec3df013eeffa = L.circleMarker(
+                [28.553984221750962, 77.21132577315825],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_e468cda9ce5b56d578d2d5307f9b7601 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_8daace843829d6c0c7d3d18384bcac4c = $(`<div id="html_8daace843829d6c0c7d3d18384bcac4c" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large cloud of black smoke, indicating a fire.<br>                     Frame: 660<br>                     Time: 22.0s                     </div>`)[0];
+                popup_e468cda9ce5b56d578d2d5307f9b7601.setContent(html_8daace843829d6c0c7d3d18384bcac4c);
+            
+        
+
+        circle_marker_93c7a3051d80cd382d2ec3df013eeffa.bindPopup(popup_e468cda9ce5b56d578d2d5307f9b7601)
+        ;
+
+        
+    
+    
+            var circle_marker_bf77514f93b98948e6d8d8c986637310 = L.circleMarker(
+                [28.62613541361376, 77.18781868239611],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_be22112d6e161494d590038c9fa0c4b7 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_28f291e5e5399ca20b325dd066680a8f = $(`<div id="html_28f291e5e5399ca20b325dd066680a8f" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 90%<br>                     Description: Thick black smoke visible on a highway<br>                     Frame: 690<br>                     Time: 23.0s                     </div>`)[0];
+                popup_be22112d6e161494d590038c9fa0c4b7.setContent(html_28f291e5e5399ca20b325dd066680a8f);
+            
+        
+
+        circle_marker_bf77514f93b98948e6d8d8c986637310.bindPopup(popup_be22112d6e161494d590038c9fa0c4b7)
+        ;
+
+        
+    
+    
+            var circle_marker_0d078840d05abb0287568304cf94f67a = L.circleMarker(
+                [28.668552283940713, 77.27556539833654],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_95eeff56812091a4c1b318951a2652ac = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_9788c7fc3918a96c92cf608f13a17c18 = $(`<div id="html_9788c7fc3918a96c92cf608f13a17c18" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 90%<br>                     Description: Large amount of smoke rising, indicating fire.<br>                     Frame: 720<br>                     Time: 24.0s                     </div>`)[0];
+                popup_95eeff56812091a4c1b318951a2652ac.setContent(html_9788c7fc3918a96c92cf608f13a17c18);
+            
+        
+
+        circle_marker_0d078840d05abb0287568304cf94f67a.bindPopup(popup_95eeff56812091a4c1b318951a2652ac)
+        ;
+
+        
+    
+    
+            var circle_marker_6549b9e133618c192bed9fcee0a5af66 = L.circleMarker(
+                [28.602565455967422, 77.1643876805471],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_7fc1be658eb65bf1c3d256ac6999ff5d = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_78944494cae3023de76117e5ef36faef = $(`<div id="html_78944494cae3023de76117e5ef36faef" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and smoke visible on the highway<br>                     Frame: 750<br>                     Time: 25.0s                     </div>`)[0];
+                popup_7fc1be658eb65bf1c3d256ac6999ff5d.setContent(html_78944494cae3023de76117e5ef36faef);
+            
+        
+
+        circle_marker_6549b9e133618c192bed9fcee0a5af66.bindPopup(popup_7fc1be658eb65bf1c3d256ac6999ff5d)
+        ;
+
+        
+    
+    
+            var circle_marker_e3a260af22133a4efa5437ec59dc4b2a = L.circleMarker(
+                [28.686318547906783, 77.21787114562214],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_7a867545253760acd328f548a4cabb53 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_9d9044a77fd03f04882ab8f9d97767c3 = $(`<div id="html_9d9044a77fd03f04882ab8f9d97767c3" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 90%<br>                     Description: Explosion with blast effects and debris<br>                     Frame: 750<br>                     Time: 25.0s                     </div>`)[0];
+                popup_7a867545253760acd328f548a4cabb53.setContent(html_9d9044a77fd03f04882ab8f9d97767c3);
+            
+        
+
+        circle_marker_e3a260af22133a4efa5437ec59dc4b2a.bindPopup(popup_7a867545253760acd328f548a4cabb53)
+        ;
+
+        
+    
+    
+            var circle_marker_3d0f388f7b3a40518786dc794268c9dd = L.circleMarker(
+                [28.535083931063447, 77.1181763670795],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_7b906ba96c0e1f928bf881c2860883dc = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_02b8e8d7bebeebb0f0a3fc4d67d973bf = $(`<div id="html_02b8e8d7bebeebb0f0a3fc4d67d973bf" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and smoke covering roadway<br>                     Frame: 780<br>                     Time: 26.0s                     </div>`)[0];
+                popup_7b906ba96c0e1f928bf881c2860883dc.setContent(html_02b8e8d7bebeebb0f0a3fc4d67d973bf);
+            
+        
+
+        circle_marker_3d0f388f7b3a40518786dc794268c9dd.bindPopup(popup_7b906ba96c0e1f928bf881c2860883dc)
+        ;
+
+        
+    
+    
+            var circle_marker_665da10016e989e7ebbbd7769cb1ee51 = L.circleMarker(
+                [28.53170865856906, 77.14767294453942],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_01e8a2fb82360b24ddf565ddc46e2127 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_99cc3a2d83bb8509ea5463e663d88abc = $(`<div id="html_99cc3a2d83bb8509ea5463e663d88abc" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and smoke visible across the road<br>                     Frame: 810<br>                     Time: 27.0s                     </div>`)[0];
+                popup_01e8a2fb82360b24ddf565ddc46e2127.setContent(html_99cc3a2d83bb8509ea5463e663d88abc);
+            
+        
+
+        circle_marker_665da10016e989e7ebbbd7769cb1ee51.bindPopup(popup_01e8a2fb82360b24ddf565ddc46e2127)
+        ;
+
+        
+    
+    
+            var circle_marker_c25313246dc8e4cd3ce42608245cc611 = L.circleMarker(
+                [28.529670289176313, 77.25942901813366],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_41f067e7d419c9ee5438c81fc8a3083b = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_e9d69186d3543d9eec9ebc7b6cbbcbbe = $(`<div id="html_e9d69186d3543d9eec9ebc7b6cbbcbbe" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 95%<br>                     Description: Massive flames and blast effects visible on highway<br>                     Frame: 840<br>                     Time: 28.0s                     </div>`)[0];
+                popup_41f067e7d419c9ee5438c81fc8a3083b.setContent(html_e9d69186d3543d9eec9ebc7b6cbbcbbe);
+            
+        
+
+        circle_marker_c25313246dc8e4cd3ce42608245cc611.bindPopup(popup_41f067e7d419c9ee5438c81fc8a3083b)
+        ;
+
+        
+    
+    
+            var circle_marker_778ddd6ab9eb83c5ea7063f1456cb78c = L.circleMarker(
+                [28.526074739677444, 77.15909675685641],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_1446bb30e05ef4f2ecd6f8c88dfc53fe = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_67838f0bf95c6073c26a43e7b8d82bce = $(`<div id="html_67838f0bf95c6073c26a43e7b8d82bce" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames visible in background<br>                     Frame: 870<br>                     Time: 29.0s                     </div>`)[0];
+                popup_1446bb30e05ef4f2ecd6f8c88dfc53fe.setContent(html_67838f0bf95c6073c26a43e7b8d82bce);
+            
+        
+
+        circle_marker_778ddd6ab9eb83c5ea7063f1456cb78c.bindPopup(popup_1446bb30e05ef4f2ecd6f8c88dfc53fe)
+        ;
+
+        
+    
+    
+            var circle_marker_3c0f3c396486ae03714d39975104bc8b = L.circleMarker(
+                [28.556742467221607, 77.1193140989732],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_a7c7c0821e8bd46e33bf83aedafddf96 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_77028879ff2d9afc2cd59a1acb1a99a7 = $(`<div id="html_77028879ff2d9afc2cd59a1acb1a99a7" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 90%<br>                     Description: Blast effects with smoke and debris<br>                     Frame: 870<br>                     Time: 29.0s                     </div>`)[0];
+                popup_a7c7c0821e8bd46e33bf83aedafddf96.setContent(html_77028879ff2d9afc2cd59a1acb1a99a7);
+            
+        
+
+        circle_marker_3c0f3c396486ae03714d39975104bc8b.bindPopup(popup_a7c7c0821e8bd46e33bf83aedafddf96)
+        ;
+
+        
+    
+    
+            var circle_marker_46de23d7e954f128089b38af17760bed = L.circleMarker(
+                [28.599462989108538, 77.17666959129394],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_f2f5d0ebcc59d4add68cc2d2cd1e92ab = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_fc56334d75d87037d71604b72236b112 = $(`<div id="html_fc56334d75d87037d71604b72236b112" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames and smoke visible in the background<br>                     Frame: 900<br>                     Time: 30.0s                     </div>`)[0];
+                popup_f2f5d0ebcc59d4add68cc2d2cd1e92ab.setContent(html_fc56334d75d87037d71604b72236b112);
+            
+        
+
+        circle_marker_46de23d7e954f128089b38af17760bed.bindPopup(popup_f2f5d0ebcc59d4add68cc2d2cd1e92ab)
+        ;
+
+        
+    
+    
+            var circle_marker_97fd587581ee8cbcd58bc3089b256953 = L.circleMarker(
+                [28.670353736125897, 77.21883671544586],
+                {"bubblingMouseEvents": true, "color": "#FF0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_6979cf25bff11cc8dea7e8d9b71c8e17 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_e23ff3a03801c9778fe2d95e00c9b509 = $(`<div id="html_e23ff3a03801c9778fe2d95e00c9b509" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Fire<br>                     Confidence: 95%<br>                     Description: Large flames visible on the highway<br>                     Frame: 930<br>                     Time: 31.0s                     </div>`)[0];
+                popup_6979cf25bff11cc8dea7e8d9b71c8e17.setContent(html_e23ff3a03801c9778fe2d95e00c9b509);
+            
+        
+
+        circle_marker_97fd587581ee8cbcd58bc3089b256953.bindPopup(popup_6979cf25bff11cc8dea7e8d9b71c8e17)
+        ;
+
+        
+    
+    
+            var circle_marker_c3e4b069d09be5ac59020cbd9113966b = L.circleMarker(
+                [28.66120889288083, 77.26303698045724],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_7c5fa4d3bd7bd76e70ed5f213ee480a7 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_feb98614eabe8521730ab93a76e9613a = $(`<div id="html_feb98614eabe8521730ab93a76e9613a" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 90%<br>                     Description: Smoke and debris indicative of an explosion<br>                     Frame: 930<br>                     Time: 31.0s                     </div>`)[0];
+                popup_7c5fa4d3bd7bd76e70ed5f213ee480a7.setContent(html_feb98614eabe8521730ab93a76e9613a);
+            
+        
+
+        circle_marker_c3e4b069d09be5ac59020cbd9113966b.bindPopup(popup_7c5fa4d3bd7bd76e70ed5f213ee480a7)
+        ;
+
+        
+    
+    
+            var circle_marker_4995f0923ddc480d98dacf6cae2d21b5 = L.circleMarker(
+                [28.612685935522368, 77.22058033597749],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_b27247dfc2f6a9c7c26e0ad8d4339849 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_e40e8f11794d8b9008194aaa9218f35f = $(`<div id="html_e40e8f11794d8b9008194aaa9218f35f" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 95%<br>                     Description: Large smoke cloud with visible flames possibly indicating an explosion<br>                     Frame: 960<br>                     Time: 32.0s                     </div>`)[0];
+                popup_b27247dfc2f6a9c7c26e0ad8d4339849.setContent(html_e40e8f11794d8b9008194aaa9218f35f);
+            
+        
+
+        circle_marker_4995f0923ddc480d98dacf6cae2d21b5.bindPopup(popup_b27247dfc2f6a9c7c26e0ad8d4339849)
+        ;
+
+        
+    
+    
+            var circle_marker_c84709f900a18862fe374d4e8f8475a4 = L.circleMarker(
+                [28.548193432540785, 77.18138652386335],
+                {"bubblingMouseEvents": true, "color": "#8B0000", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8B0000", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 2}
+            ).addTo(map_fe4fc9a971474b113a988fff350cee31);
+        
+    
+        var popup_9fb280cedbd3b0bb1a3deeb323bfd16e = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_cbf9a65d392150d6d6a8233390ed3f9c = $(`<div id="html_cbf9a65d392150d6d6a8233390ed3f9c" style="width: 100.0%; height: 100.0%;">                     <b>AI Video Detection</b><br>                     Type: Explosion<br>                     Confidence: 90%<br>                     Description: Large black smoke cloud indicating a possible explosion<br>                     Frame: 990<br>                     Time: 33.0s                     </div>`)[0];
+                popup_9fb280cedbd3b0bb1a3deeb323bfd16e.setContent(html_cbf9a65d392150d6d6a8233390ed3f9c);
+            
+        
+
+        circle_marker_c84709f900a18862fe374d4e8f8475a4.bindPopup(popup_9fb280cedbd3b0bb1a3deeb323bfd16e)
         ;
 
         
