@@ -10,8 +10,13 @@
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i> Safety Heatmap</h5>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0" style="position: relative;">
                     <div id="safetyMap" style="height: 75vh;"></div>
+                    <div id="quickHeatmap" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; background: linear-gradient(135deg, #28a745 20%, #ffc107 40%, #fd7e14 60%, #dc3545 80%); opacity: 0.3; pointer-events: none;">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 24px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                            🗺️ SAFETY HEATMAP ACTIVE
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -179,8 +184,8 @@
             zoneCircle.bindPopup(`
                 <h6>Safety Zone</h6>
                 <p>Safety Level: 
-                    <span class="badge bg-${'success' if zone.safety_level == 0 else 'warning' if zone.safety_level == 1 else 'orange' if zone.safety_level == 2 else 'danger'}">
-                        ${['Safe', 'Caution', 'High Caution', 'Unsafe'][{{ zone.safety_level }}]}
+                    <span class="badge bg-{% if zone.safety_level == 0 %}success{% elif zone.safety_level == 1 %}warning{% elif zone.safety_level == 2 %}warning{% else %}danger{% endif %}">
+                        {% if zone.safety_level == 0 %}Safe{% elif zone.safety_level == 1 %}Caution{% elif zone.safety_level == 2 %}High Caution{% else %}Unsafe{% endif %}
                     </span>
                 </p>
                 <p>Incident Count: {{ zone.incident_count }}</p>
