@@ -165,11 +165,14 @@ class WorkingMicrophoneSystem {
             if (this.isListening) {
                 setTimeout(() => {
                     try {
-                        this.recognition.start();
+                        if (this.recognition && this.isListening) {
+                            this.recognition.start();
+                        }
                     } catch (error) {
                         console.log('Recognition restart error:', error);
+                        this.isListening = false;
                     }
-                }, 500);
+                }, 1000);
             }
         };
 
