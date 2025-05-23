@@ -48,10 +48,6 @@ with app.app_context():
     # Initialize your admin account
     initialize_admin_user()
     
-    # Initialize mock data for demonstration
-    from detection.mock_data import initialize_mock_data
-    initialize_mock_data()
-    
     # Import and register blueprints
     from routes.auth import auth_bp
     from routes.admin import admin_bp

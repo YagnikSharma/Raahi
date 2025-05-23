@@ -113,6 +113,14 @@
         overflow-y: auto;
     }
     
+    .map-marker {
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    
     .camera-marker i {
         color: #007bff;
         font-size: 24px;
@@ -128,56 +136,209 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/map.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize our working safety map with real location and heatmap
-        const safetyMap = new SafetyMap('safetyMap', {
-            enableUserLocation: true,
-            autoLoadData: true,
-            defaultLat: {{ default_lat }},
-            defaultLng: {{ default_lng }},
-            defaultZoom: {{ default_zoom }}
+        // Initialize map
+        const map = L.map('safetyMap').setView([{{ default_lat }}, {{ default_lng }}], {{ default_zoom }});
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Layer groups
+        const zonesLayer = L.layerGroup().addTo(map);
+        const incidentsLayer = L.layerGroup().addTo(map);
+        const camerasLayer = L.layerGroup().addTo(map);
+        
+        // Custom marker icon for cameras
+        const cameraIcon = L.divIcon({
+            html: '<i class="fas fa-video"></i>',
+            className: 'camera-marker',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
         });
         
-        // Initialize the map with all features
-        safetyMap.initialize();
+        // Custom marker icon for incidents
+        const incidentIcon = L.divIcon({
+            html: '<i class="fas fa-exclamation-circle"></i>',
+            className: 'incident-marker',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
         
-        // Connect search functionality
+        // Add zone circles to map
+        {% for zone in zones %}
+            const zoneCircle = L.circle([{{ zone.latitude }}, {{ zone.longitude }}], {
+                color: '{{ zone.color }}',
+                fillColor: '{{ zone.color }}',
+                fillOpacity: 0.3,
+                radius: 500  // in meters
+            }).addTo(zonesLayer);
+            
+            zoneCircle.bindPopup(`
+                <h6>Safety Zone</h6>
+                <p>Safety Level: 
+                    <span class="badge bg-${'success' if zone.safety_level == 0 else 'warning' if zone.safety_level == 1 else 'orange' if zone.safety_level == 2 else 'danger'}">
+                        ${['Safe', 'Caution', 'High Caution', 'Unsafe'][{{ zone.safety_level }}]}
+                    </span>
+                </p>
+                <p>Incident Count: {{ zone.incident_count }}</p>
+                <p>Last Updated: {{ zone.last_updated.strftime('%d %b %Y, %H:%M') if zone.last_updated else 'Unknown' }}</p>
+            `);
+        {% endfor %}
+        
+        // Add incidents to map
+        {% for incident in incidents %}
+            const incidentMarker = L.marker([{{ incident.latitude }}, {{ incident.longitude }}], {
+                icon: incidentIcon
+            }).addTo(incidentsLayer);
+            
+            incidentMarker.bindPopup(`
+                <h6>{{ incident.incident_type|capitalize }}</h6>
+                <p>Detected: {{ incident.timestamp.strftime('%d %b %Y, %H:%M') }}</p>
+                <p>Confidence: {{ (incident.confidence * 100)|int }}%</p>
+                <p>Status: {{ 'Verified' if incident.is_verified else 'Unverified' }}</p>
+            `);
+        {% endfor %}
+        
+        // Fetch all cameras and add to map
+        fetch('/api/cameras')
+            .then(response => response.json())
+            .then(cameras => {
+                cameras.forEach(camera => {
+                    const cameraMarker = L.marker([camera.latitude, camera.longitude], {
+                        icon: cameraIcon
+                    }).addTo(camerasLayer);
+                    
+                    cameraMarker.bindPopup(`
+                        <h6>${camera.name}</h6>
+                        <p>Location: ${camera.location}</p>
+                        <p>Status: ${camera.status}</p>
+                    `);
+                });
+            });
+        
+        // Layer control
+        const overlays = {
+            "Safety Zones": zonesLayer,
+            "Incidents": incidentsLayer,
+            "Cameras": camerasLayer
+        };
+        
+        L.control.layers(null, overlays).addTo(map);
+        
+        // Search functionality
         const searchBtn = document.getElementById('searchBtn');
         const locationSearch = document.getElementById('locationSearch');
         
-        searchBtn.addEventListener('click', function() {
-            const location = locationSearch.value;
-            if (location) {
-                const result = safetyMap.searchLocation(location);
-                if (result) {
-                    result.then(data => {
-                        // Display search results
-                        const searchResult = document.getElementById('searchResult');
-                        const safetyAlert = document.getElementById('safetyAlert');
-                        const safetyLabel = document.getElementById('safetyLabel');
-                        const safetyDetails = document.getElementById('safetyDetails');
-                        
-                        searchResult.classList.remove('d-none');
-                        
-                        // Set alert color based on safety level
-                        safetyAlert.className = 'alert';
-                        safetyAlert.classList.add(safetyMap.getSafetyBadgeClass(data.safety_level).replace('bg-', 'alert-'));
-                        
-                        // Set safety information
-                        safetyLabel.textContent = `Safety Level: ${data.safety_label}`;
-                        safetyDetails.textContent = `This area has ${data.incident_count} recent incidents. ${data.safety_level > 1 ? 'Exercise caution when traveling through this area.' : 'This area is generally considered safe.'}`;
-                    });
-                }
+        searchBtn.addEventListener('click', searchLocation);
+        locationSearch.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchLocation();
             }
         });
         
-        locationSearch.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchBtn.click();
-            }
-        });
+        function searchLocation() {
+            const location = locationSearch.value;
+            if (!location) return;
+            
+            // Geocode the location (in a real app, use a geocoding service)
+            // For demo purposes, we'll just use a random location near the map center
+            const mapCenter = map.getCenter();
+            const lat = mapCenter.lat + (Math.random() * 0.01 - 0.005);
+            const lng = mapCenter.lng + (Math.random() * 0.01 - 0.005);
+            
+            // Get safety information for the location
+            fetch(`/api/safety/${lat}/${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Display safety information
+                    const searchResult = document.getElementById('searchResult');
+                    const safetyAlert = document.getElementById('safetyAlert');
+                    const safetyLabel = document.getElementById('safetyLabel');
+                    const safetyDetails = document.getElementById('safetyDetails');
+                    
+                    searchResult.classList.remove('d-none');
+                    
+                    // Set alert color based on safety level
+                    safetyAlert.className = 'alert';
+                    switch (data.safety_level) {
+                        case 0:
+                            safetyAlert.classList.add('alert-success');
+                            break;
+                        case 1:
+                            safetyAlert.classList.add('alert-warning');
+                            break;
+                        case 2:
+                            safetyAlert.classList.add('alert-warning');
+                            break;
+                        case 3:
+                            safetyAlert.classList.add('alert-danger');
+                            break;
+                    }
+                    
+                    // Set safety information
+                    safetyLabel.textContent = `Safety Level: ${data.safety_label}`;
+                    safetyDetails.textContent = `This area has ${data.incident_count} recent incidents. ${data.safety_level > 1 ? 'Exercise caution when traveling through this area.' : 'This area is generally considered safe.'}`;
+                    
+                    // Pan map to location
+                    map.panTo([lat, lng]);
+                    
+                    // Add temporary marker
+                    const marker = L.marker([lat, lng]).addTo(map);
+                    marker.bindPopup(`<b>${location}</b><br>Safety Level: ${data.safety_label}`).openPopup();
+                    
+                    // Remove marker after 10 seconds
+                    setTimeout(() => {
+                        map.removeLayer(marker);
+                    }, 10000);
+                })
+                .catch(error => {
+                    console.error('Error fetching safety data:', error);
+                    alert('Error fetching safety information. Please try again.');
+                });
+        }
+        
+        // User location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                
+                // Add user marker
+                const userIcon = L.divIcon({
+                    html: '<i class="fas fa-user-circle" style="color: #007bff; font-size: 30px;"></i>',
+                    className: 'user-marker',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+                
+                const userMarker = L.marker([userLat, userLng], {
+                    icon: userIcon
+                }).addTo(map);
+                
+                userMarker.bindPopup('<b>Your Location</b>').openPopup();
+                
+                // Pan to user location
+                map.panTo([userLat, userLng]);
+                
+                // Get safety information for user location
+                fetch(`/api/safety/${userLat}/${userLng}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        userMarker.bindPopup(`
+                            <h6>Your Location</h6>
+                            <p>Safety Level: 
+                                <span class="badge bg-${data.safety_level === 0 ? 'success' : data.safety_level === 1 ? 'warning' : data.safety_level === 2 ? 'warning' : 'danger'}">
+                                    ${data.safety_label}
+                                </span>
+                            </p>
+                            <p>${data.incident_count} recent incidents in this area.</p>
+                        `).openPopup();
+                    });
+            });
+        }
     });
 </script>
 {% endblock %}

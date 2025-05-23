@@ -13,21 +13,6 @@
   border-color: #fd7e14 !important;
 }
 
-/* Microphone indicator styles */
-#mic-indicator {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 6px 10px;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 0.75rem;
-  z-index: 100;
-  pointer-events: none;
-  opacity: 0.7;
-}
-
 /* Animated pulse for SOS button */
 .pulse-danger {
   animation: pulse-red 2s infinite;
