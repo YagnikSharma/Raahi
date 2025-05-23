@@ -14,10 +14,10 @@
 }
 
 /* Microphone indicator styles */
-.mic-indicator {
+#mic-indicator {
   position: fixed;
   bottom: 20px;
-  left: 20px;
+  right: 20px;
   background: rgba(0, 0, 0, 0.6);
   padding: 10px;
   border-radius: 8px;
@@ -26,11 +26,14 @@
   z-index: 100;
   pointer-events: none;
   backdrop-filter: blur(4px);
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
+  transform: scale(0.8);
+  opacity: 0.8;
 }
 
-.mic-indicator:hover {
-  opacity: 0.5;
+#mic-indicator:hover {
+  opacity: 0.3;
+  transform: scale(0.7);
 }
 
 /* Animated pulse for SOS button */
