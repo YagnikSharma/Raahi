@@ -20,19 +20,10 @@ def map():
         Incident.timestamp >= datetime.datetime.utcnow() - datetime.timedelta(days=1)
     ).order_by(Incident.timestamp.desc()).limit(10).all()
     
-    # Get AI video detection results to integrate with main map
-    try:
-        from ai_video_detector import AIVideoDetector
-        detector = AIVideoDetector()
-        video_detections = detector.get_detection_coordinates()
-    except:
-        video_detections = []
-    
     return render_template(
         'public/map.html',
         zones=zones,
         incidents=recent_incidents,
-        video_detections=video_detections,
         default_lat=current_app.config.get('DEFAULT_LAT'),
         default_lng=current_app.config.get('DEFAULT_LNG'),
         default_zoom=current_app.config.get('DEFAULT_ZOOM')
@@ -111,8 +102,3 @@ def about():
 def live_detection():
     """Live CCTV detection page with real-time AI analysis"""
     return render_template('live_detection.html')
-
-@public_bp.route('/video-analysis')
-def video_analysis():
-    """Video anomaly detection page"""
-    return render_template('video_upload.html')

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app, send_file
+from flask import Blueprint, jsonify, request, current_app
 from models import Zone, Incident, Camera, Alert
 from app import db
 import datetime
@@ -9,74 +9,8 @@ import json
 import base64
 import os
 import logging
-from werkzeug.utils import secure_filename
-import threading
-from ai_video_detector import AIVideoDetector
-from folium_heatmap_generator import FoliumHeatmapGenerator
 
 logger = logging.getLogger(__name__)
-
-# Global variables for video processing status
-video_processing_status = {
-    'is_processing': False,
-    'progress': 0,
-    'current_video': None,
-    'results': None,
-    'error': None
-}
-
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
-
-# Create upload directory
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def update_video_progress(progress):
-    video_processing_status['progress'] = progress
-
-def process_video_async(video_path):
-    global video_processing_status
-    
-    try:
-        video_processing_status['is_processing'] = True
-        video_processing_status['progress'] = 0
-        video_processing_status['error'] = None
-        
-        # Initialize AI detector
-        detector = AIVideoDetector()
-        
-        # Process video with OpenAI
-        results = detector.process_video(video_path, progress_callback=update_video_progress)
-        
-        # Generate integrated heatmap with Folium
-        heatmap_gen = FoliumHeatmapGenerator()
-        heatmap_path, detection_count, map_center = heatmap_gen.generate_integrated_heatmap(
-            video_name=results['video_name']
-        )
-        
-        # Get detection summary
-        summary = heatmap_gen.generate_detection_summary(results['video_name'])
-        
-        # Store results
-        video_processing_status['results'] = {
-            'total_detections': results['total_detections'],
-            'summary': summary,
-            'heatmap_path': heatmap_path,
-            'detection_count': detection_count,
-            'map_center': map_center,
-            'video_name': results['video_name']
-        }
-        
-        video_processing_status['progress'] = 100
-        
-    except Exception as e:
-        logger.error(f"Video processing error: {e}")
-        video_processing_status['error'] = str(e)
-    finally:
-        video_processing_status['is_processing'] = False
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -363,79 +297,3 @@ def get_alerts():
         })
     
     return jsonify(alert_data)
-
-# Video Analysis API Endpoints
-@api_bp.route('/video/upload', methods=['POST'])
-def upload_video():
-    """Handle video upload and start AI analysis"""
-    global video_processing_status
-    
-    if video_processing_status['is_processing']:
-        return jsonify({'error': 'Another video is currently being processed'}), 400
-    
-    if 'video' not in request.files:
-        return jsonify({'error': 'No video file provided'}), 400
-    
-    file = request.files['video']
-    
-    if file.filename == '':
-        return jsonify({'error': 'No video file selected'}), 400
-    
-    if file and allowed_file(file.filename):
-        # Save video file
-        filename = secure_filename(file.filename)
-        video_path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(video_path)
-        
-        # Get location data (use current location if not provided)
-        latitude = request.form.get('latitude')
-        longitude = request.form.get('longitude')
-        
-        # Reset processing status
-        video_processing_status = {
-            'is_processing': False,
-            'progress': 0,
-            'current_video': filename,
-            'results': None,
-            'error': None,
-            'location': {'lat': latitude, 'lng': longitude} if latitude and longitude else None
-        }
-        
-        # Start processing in background thread
-        thread = threading.Thread(target=process_video_async, args=(video_path,))
-        thread.start()
-        
-        return jsonify({'message': f'Video "{filename}" uploaded successfully! AI analysis started.'})
-    
-    else:
-        return jsonify({'error': 'Invalid file type. Please upload MP4, AVI, MOV, or MKV files.'}), 400
-
-@api_bp.route('/video/status')
-def get_video_status():
-    """Get video processing status"""
-    return jsonify(video_processing_status)
-
-@api_bp.route('/video/heatmap')
-def get_video_heatmap():
-    """Get integrated heatmap with video detections"""
-    try:
-        return send_file('integrated_heatmap.html')
-    except FileNotFoundError:
-        return jsonify({'error': 'Heatmap not found'}), 404
-
-@api_bp.route('/video/reset', methods=['POST'])
-def reset_video_processing():
-    """Reset video processing status"""
-    global video_processing_status
-    
-    if not video_processing_status['is_processing']:
-        video_processing_status = {
-            'is_processing': False,
-            'progress': 0,
-            'current_video': None,
-            'results': None,
-            'error': None
-        }
-        return jsonify({'message': 'Video processing reset successfully'})
-    else:
-        return jsonify({'error': 'Cannot reset while processing is in progress'}), 400

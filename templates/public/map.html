@@ -24,7 +24,7 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center mb-2">
                             <div class="legend-circle bg-success me-2"></div>
-                            <span>Safe (1 incident)</span>
+                            <span>Safe (0 incidents)</span>
                         </div>
                         <div class="d-flex align-items-center mb-2">
                             <div class="legend-circle bg-warning me-2"></div>
@@ -87,64 +87,6 @@
                         <div class="alert" id="safetyAlert">
                             <h6 class="alert-heading" id="safetyLabel">Safety Level</h6>
                             <p class="mb-0 small" id="safetyDetails">Details about this safety rating.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- AI Video Analysis Section -->
-                    <div class="mt-4">
-                        <h6><i class="fas fa-video text-danger"></i> AI Video Analysis</h6>
-                        <p class="small text-muted">Upload videos to detect fire, violence, and explosions using AI</p>
-                        
-                        <div id="videoUploadArea" class="border rounded p-3 mb-3" style="border-style: dashed; cursor: pointer;">
-                            <div class="text-center">
-                                <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i>
-                                <p class="mb-1">Drop video here or click to browse</p>
-                                <small class="text-muted">MP4, AVI, MOV, MKV (Max 100MB)</small>
-                                <input type="file" id="videoInput" accept=".mp4,.avi,.mov,.mkv" style="display: none;">
-                            </div>
-                        </div>
-                        
-                        <div id="videoUploadStatus" class="d-none">
-                            <div class="alert alert-info">
-                                <strong>Selected:</strong> <span id="videoFileName"></span>
-                                <button class="btn btn-sm btn-primary ms-2" id="uploadVideoBtn">
-                                    <i class="fas fa-brain"></i> Analyze with AI
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div id="videoProcessingStatus" class="d-none">
-                            <div class="alert alert-warning">
-                                <i class="fas fa-spinner fa-spin"></i> <span id="processingMessage">Processing video...</span>
-                                <div class="progress mt-2" style="height: 8px;">
-                                    <div id="videoProgress" class="progress-bar" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div id="videoResults" class="d-none">
-                            <div class="alert alert-success">
-                                <strong>Analysis Complete!</strong>
-                                <p class="mb-1">Found <span id="detectionCount">0</span> anomalies</p>
-                                <button class="btn btn-sm btn-success me-2" id="viewHeatmapBtn">
-                                    <i class="fas fa-map"></i> View Detection Heatmap
-                                </button>
-                                <button class="btn btn-sm btn-info" id="showOnMapBtn">
-                                    <i class="fas fa-layer-group"></i> Show on Current Map
-                                </button>
-                            </div>
-                            
-                            <!-- Integrated Heatmap Display -->
-                            <div id="integratedHeatmapContainer" class="mt-3 d-none">
-                                <div class="card">
-                                    <div class="card-header bg-success text-white">
-                                        <h6 class="mb-0"><i class="fas fa-brain"></i> AI Detection Results</h6>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <iframe id="heatmapFrame" src="" width="100%" height="400" frameborder="0"></iframe>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -227,18 +169,18 @@
         
         // Add zone circles to map
         {% for zone in zones %}
-            const zoneCircle{{ loop.index }} = L.circle([{{ zone.latitude }}, {{ zone.longitude }}], {
+            const zoneCircle = L.circle([{{ zone.latitude }}, {{ zone.longitude }}], {
                 color: '{{ zone.color }}',
                 fillColor: '{{ zone.color }}',
                 fillOpacity: 0.3,
                 radius: 500  // in meters
             }).addTo(zonesLayer);
             
-            zoneCircle{{ loop.index }}.bindPopup(`
+            zoneCircle.bindPopup(`
                 <h6>Safety Zone</h6>
                 <p>Safety Level: 
-                    <span class="badge bg-{{ 'success' if zone.safety_level == 0 else 'warning' if zone.safety_level == 1 else 'orange' if zone.safety_level == 2 else 'danger' }}">
-                        {{ ['Safe', 'Caution', 'High Caution', 'Unsafe'][zone.safety_level] }}
+                    <span class="badge bg-${'success' if zone.safety_level == 0 else 'warning' if zone.safety_level == 1 else 'orange' if zone.safety_level == 2 else 'danger'}">
+                        ${['Safe', 'Caution', 'High Caution', 'Unsafe'][{{ zone.safety_level }}]}
                     </span>
                 </p>
                 <p>Incident Count: {{ zone.incident_count }}</p>
@@ -248,41 +190,17 @@
         
         // Add incidents to map
         {% for incident in incidents %}
-            const incidentMarker{{ loop.index }} = L.marker([{{ incident.latitude }}, {{ incident.longitude }}], {
+            const incidentMarker = L.marker([{{ incident.latitude }}, {{ incident.longitude }}], {
                 icon: incidentIcon
             }).addTo(incidentsLayer);
             
-            incidentMarker{{ loop.index }}.bindPopup(`
+            incidentMarker.bindPopup(`
                 <h6>{{ incident.incident_type|capitalize }}</h6>
                 <p>Detected: {{ incident.timestamp.strftime('%d %b %Y, %H:%M') }}</p>
                 <p>Confidence: {{ (incident.confidence * 100)|int }}%</p>
                 <p>Status: {{ 'Verified' if incident.is_verified else 'Unverified' }}</p>
             `);
         {% endfor %}
-
-        // Add AI Video Detection Results to main Safety Heatmap
-        {% if video_detections %}
-            const aiDetectionIcon = L.divIcon({
-                html: '<i class="fas fa-brain" style="color: #ff6b35; font-size: 18px;"></i>',
-                className: 'ai-detection-marker',
-                iconSize: [25, 25],
-                iconAnchor: [12, 12]
-            });
-            
-            {% for detection in video_detections %}
-                const aiMarker{{ loop.index }} = L.marker([{{ detection.lat }}, {{ detection.lng }}], {
-                    icon: aiDetectionIcon
-                }).addTo(incidentsLayer);
-                
-                aiMarker{{ loop.index }}.bindPopup(`
-                    <h6><i class="fas fa-brain text-primary"></i> AI Video Detection</h6>
-                    <p><strong>Type:</strong> {{ detection.type|title }}</p>
-                    <p><strong>Confidence:</strong> {{ (detection.confidence * 100)|round }}%</p>
-                    <p><strong>Description:</strong> {{ detection.description }}</p>
-                    <p><small class="text-muted">Detected by AI video analysis</small></p>
-                `);
-            {% endfor %}
-        {% endif %}
         
         // Fetch all cameras and add to map
         fetch('/api/cameras')
@@ -421,172 +339,6 @@
                     });
             });
         }
-
-        // Video Upload Functionality
-        const videoUploadArea = document.getElementById('videoUploadArea');
-        const videoInput = document.getElementById('videoInput');
-        const videoUploadStatus = document.getElementById('videoUploadStatus');
-        const videoFileName = document.getElementById('videoFileName');
-        const uploadVideoBtn = document.getElementById('uploadVideoBtn');
-        const videoProcessingStatus = document.getElementById('videoProcessingStatus');
-        const processingMessage = document.getElementById('processingMessage');
-        const videoProgress = document.getElementById('videoProgress');
-        const videoResults = document.getElementById('videoResults');
-        const detectionCount = document.getElementById('detectionCount');
-        const viewHeatmapBtn = document.getElementById('viewHeatmapBtn');
-
-        let selectedFile = null;
-
-        // Click to browse
-        videoUploadArea.addEventListener('click', () => {
-            videoInput.click();
-        });
-
-        // Drag and drop
-        videoUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            videoUploadArea.style.backgroundColor = '#e3f2fd';
-        });
-
-        videoUploadArea.addEventListener('dragleave', () => {
-            videoUploadArea.style.backgroundColor = '';
-        });
-
-        videoUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            videoUploadArea.style.backgroundColor = '';
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileSelection(files[0]);
-            }
-        });
-
-        // File input change
-        videoInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelection(e.target.files[0]);
-            }
-        });
-
-        function handleFileSelection(file) {
-            const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/x-msvideo'];
-            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp4|avi|mov|mkv)$/i)) {
-                alert('Please select a valid video file (MP4, AVI, MOV, MKV)');
-                return;
-            }
-
-            if (file.size > 100 * 1024 * 1024) {
-                alert('File size too large. Please select a video under 100MB.');
-                return;
-            }
-
-            selectedFile = file;
-            videoFileName.textContent = file.name;
-            videoUploadStatus.classList.remove('d-none');
-            videoProcessingStatus.classList.add('d-none');
-            videoResults.classList.add('d-none');
-        }
-
-        // Upload and analyze video
-        uploadVideoBtn.addEventListener('click', () => {
-            if (!selectedFile) return;
-
-            const formData = new FormData();
-            formData.append('video', selectedFile);
-
-            videoUploadStatus.classList.add('d-none');
-            videoProcessingStatus.classList.remove('d-none');
-            processingMessage.textContent = 'Uploading video for AI analysis...';
-            videoProgress.style.width = '10%';
-
-            fetch('/api/video/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                processingMessage.textContent = 'AI analysis started with OpenAI...';
-                videoProgress.style.width = '20%';
-                pollVideoProgress();
-            })
-            .catch(error => {
-                alert('Upload failed: ' + error.message);
-                videoProcessingStatus.classList.add('d-none');
-                videoUploadStatus.classList.remove('d-none');
-            });
-        });
-
-        function pollVideoProgress() {
-            const pollInterval = setInterval(() => {
-                fetch('/api/video/status')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        clearInterval(pollInterval);
-                        alert('Processing error: ' + data.error);
-                        videoProcessingStatus.classList.add('d-none');
-                        return;
-                    }
-
-                    videoProgress.style.width = data.progress + '%';
-                    
-                    if (data.progress < 25) {
-                        processingMessage.textContent = 'Initializing OpenAI vision model...';
-                    } else if (data.progress < 50) {
-                        processingMessage.textContent = 'AI analyzing video frames...';
-                    } else if (data.progress < 75) {
-                        processingMessage.textContent = 'Detecting fire, violence, explosions...';
-                    } else if (data.progress < 95) {
-                        processingMessage.textContent = 'Generating detection heatmap...';
-                    } else if (data.progress >= 100 && data.results) {
-                        clearInterval(pollInterval);
-                        showResults(data.results);
-                    }
-                })
-                .catch(error => {
-                    console.error('Progress polling error:', error);
-                });
-            }, 2000);
-        }
-
-        function showResults(results) {
-            videoProcessingStatus.classList.add('d-none');
-            videoResults.classList.remove('d-none');
-            detectionCount.textContent = results.total_detections;
-            
-            // Automatically show the integrated heatmap
-            if (results.total_detections > 0) {
-                showIntegratedHeatmap();
-            }
-        }
-
-        function showIntegratedHeatmap() {
-            const heatmapContainer = document.getElementById('integratedHeatmapContainer');
-            const heatmapFrame = document.getElementById('heatmapFrame');
-            
-            // Set the iframe source to the heatmap
-            heatmapFrame.src = '/api/video/heatmap';
-            
-            // Show the container
-            heatmapContainer.classList.remove('d-none');
-            
-            // Scroll to show the heatmap
-            heatmapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        viewHeatmapBtn.addEventListener('click', () => {
-            window.open('/api/video/heatmap', '_blank');
-        });
-
-        // Show on current map button functionality
-        document.getElementById('showOnMapBtn').addEventListener('click', () => {
-            showIntegratedHeatmap();
-        });
     });
 </script>
 {% endblock %}

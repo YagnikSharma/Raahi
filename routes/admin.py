@@ -157,12 +157,3 @@ def profile():
                 flash('Password updated successfully.', 'success')
     
     return render_template('admin/profile.html')
-
-@admin_bp.route('/video-analysis')
-@login_required  
-def video_analysis():
-    """Video Analysis Management Dashboard"""
-    if not current_user.is_admin:
-        flash('Access denied. Admin privileges required.', 'error')
-        return redirect(url_for('public.index'))
-    return render_template('admin/video_analysis.html')

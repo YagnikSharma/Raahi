@@ -24,8 +24,6 @@ dependencies = [
     "seaborn>=0.13.2",
     "pillow>=11.2.1",
     "matplotlib>=3.10.3",
-    "numpy>=2.2.6",
-    "folium>=0.19.6",
 ]
 
 [[tool.uv.index]]
