@@ -84,19 +84,22 @@ def update_zone_safety(latitude, longitude, incident_type=None):
     
     return zone
 
-def create_alert(alert_type, message, latitude=None, longitude=None, incident_id=None):
+def create_alert(alert_type, message, latitude=None, longitude=None, incident_id=None, trigger_type='manual', severity='medium', source='system'):
     """Create a new alert in the system"""
     alert = Alert(
         alert_type=alert_type,
-        message=message,
+        trigger_type=trigger_type,
+        severity=severity,
+        source=source,
         latitude=latitude,
         longitude=longitude,
-        incident_id=incident_id
+        incident_id=incident_id,
+        message=message
     )
     db.session.add(alert)
     db.session.commit()
     
-    logger.info(f"New alert created: {alert_type} - {message}")
+    logger.info(f"New alert created: {alert_type} ({trigger_type}) - {message}")
     return alert
 
 def initialize_admin_user():

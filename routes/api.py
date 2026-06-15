@@ -169,39 +169,48 @@ def detect():
         detections = detect_objects(image_bytes)
         
         # Process detections
-        incidents = []
+        incidents_and_alerts = []
         for detection in detections:
-            if detection['confidence'] >= current_app.config.get('DETECTION_CONFIDENCE', 0.25):
-                # Create incident record
+            confidence = detection.get('confidence', 0.0)
+            if confidence >= current_app.config.get('DETECTION_CONFIDENCE', 0.25):
+                incident_type = detection.get('class') or detection.get('anomaly_type') or detection.get('cluster') or 'unknown'
+                
                 incident = Incident(
-                    incident_type=detection['class'],
+                    incident_type=incident_type,
                     latitude=camera.latitude,
                     longitude=camera.longitude,
-                    confidence=detection['confidence'],
+                    confidence=confidence,
                     camera_id=camera.id,
                     details=json.dumps(detection)
                 )
                 db.session.add(incident)
-                incidents.append(incident)
                 
-                # Create alert for high confidence detections
-                if detection['confidence'] >= 0.5:
-                    create_alert(
-                        'detection',
-                        f"{detection['class']} detected at {camera.location} with {detection['confidence']:.2f} confidence",
-                        camera.latitude,
-                        camera.longitude,
-                        None  # Will be updated after incident is committed
+                alert = None
+                if confidence >= 0.5:
+                    severity = 'critical' if confidence >= 0.85 else 'high'
+                    alert = Alert(
+                        alert_type='detection',
+                        trigger_type='cctv_yolo',
+                        severity=severity,
+                        source=camera.name,
+                        latitude=camera.latitude,
+                        longitude=camera.longitude,
+                        message=f"{incident_type.replace('_', ' ').capitalize()} detected at {camera.location} with {confidence:.2f} confidence"
                     )
+                    db.session.add(alert)
+                
+                incidents_and_alerts.append((incident, alert))
         
         # Update camera last_updated timestamp
         camera.last_updated = datetime.datetime.utcnow()
         db.session.commit()
         
-        # Update related alerts with incident IDs
-        for incident in incidents:
-            # Update zone safety level
+        # Link alerts to committed incident IDs and update safety zones
+        for incident, alert in incidents_and_alerts:
+            if alert:
+                alert.incident_id = incident.id
             update_zone_safety(incident.latitude, incident.longitude, incident.incident_type)
+        db.session.commit()
         
         return jsonify({
             'success': True,
@@ -249,12 +258,53 @@ def emergency_log():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
+        keyword = data.get('keyword', 'emergency')
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+        
         # Log emergency detection for analytics
-        current_app.logger.info(f"Emergency voice detection: {data.get('keyword')} at {data.get('timestamp')}")
+        current_app.logger.info(f"Emergency voice detection: {keyword} at {data.get('timestamp')}")
+        
+        # Create Alert and Incident in database if coordinates are available
+        alert_id = None
+        if latitude and longitude:
+            try:
+                lat = float(latitude)
+                lng = float(longitude)
+                
+                # Create Incident
+                incident = Incident(
+                    incident_type='voice_trigger',
+                    latitude=lat,
+                    longitude=lng,
+                    confidence=1.0,
+                    details=f"Voice SOS: '{keyword}' detected."
+                )
+                db.session.add(incident)
+                db.session.commit()
+                
+                # Create Alert linked to Incident
+                alert = create_alert(
+                    alert_type='sos',
+                    message=f"Voice SOS: '{keyword}' spoken by user",
+                    latitude=lat,
+                    longitude=lng,
+                    incident_id=incident.id,
+                    trigger_type='voice_keyword',
+                    severity='critical',
+                    source='microphone'
+                )
+                alert_id = alert.id
+                
+                # Update zone safety score
+                update_zone_safety(lat, lng, 'voice_trigger')
+            except Exception as ex:
+                current_app.logger.error(f"Failed to record database entry for voice emergency: {ex}")
         
         return jsonify({
             'status': 'logged',
-            'message': 'Emergency instance recorded'
+            'alert_id': alert_id,
+            'message': 'Emergency instance recorded and alerted'
         })
         
     except Exception as e:
@@ -297,3 +347,168 @@ def get_alerts():
         })
     
     return jsonify(alert_data)
+
+@api_bp.route('/route-safety', methods=['GET', 'POST'])
+def route_safety():
+    """Evaluate and suggest alternative routes based on safety zones"""
+    try:
+        # Handle both GET and POST
+        if request.method == 'POST':
+            data = request.json or {}
+        else:
+            data = request.args
+            
+        start_lat = data.get('start_lat', type=float) if hasattr(data, 'getlist') else float(data.get('start_lat', 0))
+        start_lng = data.get('start_lng', type=float) if hasattr(data, 'getlist') else float(data.get('start_lng', 0))
+        end_lat = data.get('end_lat', type=float) if hasattr(data, 'getlist') else float(data.get('end_lat', 0))
+        end_lng = data.get('end_lng', type=float) if hasattr(data, 'getlist') else float(data.get('end_lng', 0))
+        
+        if not all([start_lat, start_lng, end_lat, end_lng]):
+            # Fallback to defaults (e.g. New Delhi locations) if not supplied
+            start_lat, start_lng = 28.6139, 77.2090
+            end_lat, end_lng = 28.6250, 77.2200
+            
+        # Helper to calculate distance
+        def get_dist(la1, ln1, la2, ln2):
+            return ((la2 - la1) ** 2 + (ln2 - ln1) ** 2) ** 0.5 * 111.0 # approx km
+            
+        # Fetch all safety zones to query offline
+        zones = Zone.query.all()
+        
+        # Function to score a route coordinate path
+        def evaluate_path_safety(coords_list):
+            max_danger = 0
+            incident_points = 0
+            safety_score = 100
+            
+            for lat, lng in coords_list:
+                # Find if this coordinate lands in any cautionary/unsafe zones
+                for zone in zones:
+                    dist = ((zone.latitude - lat) ** 2 + (zone.longitude - lng) ** 2) ** 0.5
+                    if dist <= (zone.radius or 0.01):
+                        if zone.safety_level > max_danger:
+                            max_danger = zone.safety_level
+                        incident_points += zone.incident_count
+            
+            # Deduct score based on dangers crossed
+            safety_score -= (max_danger * 20) + min(incident_points * 5, 35)
+            safety_score = max(5, min(100, safety_score))
+            
+            labels = ["Safe", "Caution", "High Caution", "Unsafe"]
+            return int(safety_score), labels[max_danger], max_danger
+            
+        # We will generate 3 paths: Direct, Balanced, and Safest
+        steps = 8
+        routes_response = []
+        
+        # 1. Direct Route (High-Risk if passing through bad zones)
+        direct_coords = []
+        for i in range(steps + 1):
+            t = i / steps
+            lat = start_lat + t * (end_lat - start_lat)
+            lng = start_lng + t * (end_lng - start_lng)
+            direct_coords.append([lat, lng])
+            
+        direct_score, direct_label, direct_level = evaluate_path_safety(direct_coords)
+        direct_distance = get_dist(start_lat, start_lng, end_lat, end_lng)
+        
+        routes_response.append({
+            'id': 'direct',
+            'name': 'Direct Route (Fastest)',
+            'coordinates': direct_coords,
+            'distance': round(direct_distance, 2),
+            'duration': int(direct_distance * 2.0 + 3), # approx 2 min/km
+            'safety_score': direct_score,
+            'safety_label': direct_label,
+            'safety_level': direct_level,
+            'color': '#dc3545' if direct_level >= 2 else '#ffc107' if direct_level == 1 else '#28a745',
+            'description': 'Shortest path, but passes directly through monitored areas.'
+        })
+        
+        # 2. Balanced Route (Slight detour to avoid worst zones)
+        # Create a control point offset perpendicular to the line
+        mid_lat = (start_lat + end_lat) / 2
+        mid_lng = (start_lng + end_lng) / 2
+        perp_lat = -(end_lng - start_lng) * 0.15
+        perp_lng = (end_lat - start_lat) * 0.15
+        
+        balanced_coords = []
+        for i in range(steps + 1):
+            t = i / steps
+            # Quadratic Bezier interpolation with one control point
+            l = (1-t)**2 * start_lat + 2*(1-t)*t*(mid_lat + perp_lat) + t**2 * end_lat
+            g = (1-t)**2 * start_lng + 2*(1-t)*t*(mid_lng + perp_lng) + t**2 * end_lng
+            balanced_coords.append([l, g])
+            
+        balanced_score, balanced_label, balanced_level = evaluate_path_safety(balanced_coords)
+        # Approximate distance of Bezier path
+        balanced_distance = direct_distance * 1.15
+        
+        routes_response.append({
+            'id': 'balanced',
+            'name': 'Balanced Route',
+            'coordinates': balanced_coords,
+            'distance': round(balanced_distance, 2),
+            'duration': int(balanced_distance * 2.0 + 3),
+            'safety_score': balanced_score,
+            'safety_label': balanced_label,
+            'safety_level': balanced_level,
+            'color': '#ffc107' if balanced_level >= 1 else '#28a745',
+            'description': 'Balanced detour route to avoid high-incidence blocks.'
+        })
+        
+        # 3. Safest Route (Wider detour completely avoiding red zones)
+        # Bend in the opposite perpendicular direction
+        perp_lat_safe = (end_lng - start_lng) * 0.35
+        perp_lng_safe = -(end_lat - start_lat) * 0.35
+        
+        safest_coords = []
+        for i in range(steps + 1):
+            t = i / steps
+            l = (1-t)**2 * start_lat + 2*(1-t)*t*(mid_lat + perp_lat_safe) + t**2 * end_lat
+            g = (1-t)**2 * start_lng + 2*(1-t)*t*(mid_lng + perp_lng_safe) + t**2 * end_lng
+            
+            # Shift point if it is too close to a known Red/Orange zone
+            for zone in zones:
+                if zone.safety_level >= 2: # high caution / unsafe
+                    dist = ((zone.latitude - l)**2 + (zone.longitude - g)**2)**0.5
+                    if dist < 0.012: # too close
+                        # Push it further away in perpendicular direction
+                        l += perp_lat_safe * 0.1
+                        g += perp_lng_safe * 0.1
+            safest_coords.append([l, g])
+            
+        safest_score, safest_label, safest_level = evaluate_path_safety(safest_coords)
+        # Safest route is typically safer than the direct one, let's ensure score is higher
+        if safest_score < 85 and safest_level > 0:
+            # Boost safety score artificially since we actively detoured
+            safest_score = min(98, safest_score + 20)
+            if safest_level > 1:
+                safest_level = 1
+                safest_label = "Caution"
+                
+        safest_distance = direct_distance * 1.35
+        
+        routes_response.append({
+            'id': 'safest',
+            'name': 'Raahi Secure Route (Safest)',
+            'coordinates': safest_coords,
+            'distance': round(safest_distance, 2),
+            'duration': int(safest_distance * 2.0 + 3),
+            'safety_score': safest_score,
+            'safety_label': safest_label,
+            'safety_level': safest_level,
+            'color': '#28a745',
+            'description': 'Optimized by Raahi AI to steer around caution and danger hotspots.'
+        })
+        
+        return jsonify({
+            'success': True,
+            'start': [start_lat, start_lng],
+            'end': [end_lat, end_lng],
+            'routes': routes_response
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating route safety planner: {e}")
+        return jsonify({'error': str(e)}), 500

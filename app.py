@@ -48,6 +48,14 @@ with app.app_context():
     # Initialize your admin account
     initialize_admin_user()
     
+    # Initialize mock data for demonstration
+    try:
+        from detection.mock_data import initialize_mock_data
+        initialize_mock_data()
+        logger.debug("Mock data initialized")
+    except Exception as e:
+        logger.error(f"Error seeding mock data: {e}")
+    
     # Import and register blueprints
     from routes.auth import auth_bp
     from routes.admin import admin_bp
@@ -60,6 +68,24 @@ with app.app_context():
     app.register_blueprint(api_bp)
     
     logger.debug("Blueprints registered")
+
+# Context processor to inject JWT token for authenticated admins
+@app.context_processor
+def inject_jwt_token():
+    from flask import session
+    from flask_login import current_user
+    from flask_jwt_extended import create_access_token
+    if current_user and current_user.is_authenticated:
+        token = session.get('jwt_token')
+        if not token:
+            try:
+                token = create_access_token(identity=str(current_user.id))
+                session['jwt_token'] = token
+            except Exception as e:
+                logger.error(f"Error creating JWT token: {e}")
+                token = ""
+        return {'jwt_token': token}
+    return {'jwt_token': ''}
 
 # User loader callback for Flask-Login
 @login_manager.user_loader

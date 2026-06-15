@@ -1,17 +1,24 @@
 {% extends 'base.html' %}
 
-{% block title %}Admin Dashboard | Raahi{% endblock %}
+{% block title %}Operational Control Dashboard | Raahi{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1><i class="fas fa-tachometer-alt me-2"></i> Admin Dashboard</h1>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <button class="btn btn-outline-danger position-relative" data-bs-toggle="modal" data-bs-target="#alertsModal">
-                        <i class="fas fa-bell me-2"></i> Alerts
-                        <span id="alertBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge" style="display: none;">
+                    <h1 class="text-white mb-1"><i class="fas fa-shield-halved me-2 text-primary"></i> Operations Command Dashboard</h1>
+                    <p class="text-muted small mb-0">Real-time surveillance feeds, system health telemetry, and safety dispatch logistics.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.cctv_analysis') }}" class="btn btn-outline-primary rounded-pill px-3">
+                        <i class="fas fa-circle-play me-1"></i> CCTV Analysis Hub
+                    </a>
+                    <button class="btn btn-outline-danger position-relative rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#alertsModal">
+                        <i class="fas fa-bell me-1"></i> System Alerts
+                        <span id="alertBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark" style="display: none; font-size: 0.65rem;">
                             0
                         </span>
                     </button>
@@ -20,96 +27,88 @@
         </div>
     </div>
     
-    <!-- Stats Cards -->
-    <div class="row mb-4">
+    <!-- Stats Telemetry Cards -->
+    <div class="row mb-4 g-3">
+        <!-- Card: Total Incidents -->
         <div class="col-md-3">
-            <div class="card stats-card shadow-sm safety-red">
+            <div class="card stats-card safety-red shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted mb-2">Total Incidents</h6>
-                            <h3>{{ total_incidents }}</h3>
+                            <h6 class="text-muted small mb-1">Total Incidents</h6>
+                            <h3 class="text-white fw-bold mb-0">{{ total_incidents }}</h3>
                         </div>
-                        <div class="stats-icon">
-                            <i class="fas fa-exclamation-circle fa-2x text-danger"></i>
+                        <div class="p-2 rounded bg-danger bg-opacity-10 border border-danger-subtle">
+                            <i class="fas fa-triangle-exclamation text-danger"></i>
                         </div>
-                    </div>
-                    <div class="progress mt-3" style="height: 5px;">
-                        <div class="progress-bar bg-danger" role="progressbar" style="width: 100%"></div>
                     </div>
                 </div>
-                <div class="card-footer bg-transparent">
-                    <small class="text-muted">{{ recent_incidents }} in the last 24 hours</small>
+                <div class="card-footer bg-transparent py-2">
+                    <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ recent_incidents }} in last 24 hrs</small>
                 </div>
             </div>
         </div>
         
+        <!-- Card: CCTV Cameras -->
         <div class="col-md-3">
-            <div class="card stats-card shadow-sm safety-green">
+            <div class="card stats-card safety-green shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted mb-2">CCTV Cameras</h6>
-                            <h3>{{ active_cameras }}/{{ total_cameras }}</h3>
+                            <h6 class="text-muted small mb-1">CCTV Feeds Active</h6>
+                            <h3 class="text-white fw-bold mb-0">{{ active_cameras }}/{{ total_cameras }}</h3>
                         </div>
-                        <div class="stats-icon">
-                            <i class="fas fa-video fa-2x text-success"></i>
+                        <div class="p-2 rounded bg-success bg-opacity-10 border border-success-subtle">
+                            <i class="fas fa-video text-success"></i>
                         </div>
-                    </div>
-                    <div class="progress mt-3" style="height: 5px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (active_cameras / total_cameras * 100) if total_cameras > 0 else 0 }}%"></div>
                     </div>
                 </div>
-                <div class="card-footer bg-transparent">
-                    <small class="text-muted">{{ active_cameras }} cameras active</small>
+                <div class="card-footer bg-transparent py-2">
+                    <small class="text-muted"><i class="fas fa-circle-check text-success me-1"></i>All cameras reporting online</small>
                 </div>
             </div>
         </div>
         
+        <!-- Card: Unsafe Zones -->
         <div class="col-md-3">
-            <div class="card stats-card shadow-sm safety-orange">
+            <div class="card stats-card safety-orange shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted mb-2">Unsafe Zones</h6>
-                            <h3>{{ unsafe_zones }}</h3>
+                            <h6 class="text-muted small mb-1">Unsafe Heat Zones</h6>
+                            <h3 class="text-white fw-bold mb-0">{{ unsafe_zones }}</h3>
                         </div>
-                        <div class="stats-icon">
-                            <i class="fas fa-map-marked-alt fa-2x text-orange"></i>
+                        <div class="p-2 rounded bg-warning bg-opacity-10 border border-warning-subtle">
+                            <i class="fas fa-map-location-dot text-orange"></i>
                         </div>
-                    </div>
-                    <div class="progress mt-3" style="height: 5px;">
-                        <div class="progress-bar bg-orange" role="progressbar" style="width: {{ (unsafe_zones / zones|length * 100) if zones|length > 0 else 0 }}%"></div>
                     </div>
                 </div>
-                <div class="card-footer bg-transparent">
-                    <small class="text-muted">{{ zones|length }} total zones monitored</small>
+                <div class="card-footer bg-transparent py-2">
+                    <small class="text-muted"><i class="fas fa-earth-asia me-1"></i>{{ zones|length }} monitored zones</small>
                 </div>
             </div>
         </div>
         
+        <!-- Card: Unread Alerts -->
         <div class="col-md-3">
-            <div class="card stats-card shadow-sm safety-yellow">
+            <div class="card stats-card safety-yellow shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted mb-2">Unread Alerts</h6>
-                            <h3>{{ unread_alerts }}</h3>
+                            <h6 class="text-muted small mb-1">Unresolved Alerts</h6>
+                            <h3 class="text-white fw-bold mb-0" id="unresolvedAlertsCount">{{ unread_alerts }}</h3>
                         </div>
-                        <div class="stats-icon">
-                            <i class="fas fa-bell fa-2x text-warning"></i>
+                        <div class="p-2 rounded bg-info bg-opacity-10 border border-info-subtle">
+                            <i class="fas fa-envelope-open-text text-warning"></i>
                         </div>
-                    </div>
-                    <div class="progress mt-3" style="height: 5px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
                     </div>
                 </div>
-                <div class="card-footer bg-transparent">
+                <div class="card-footer bg-transparent py-2">
                     <small class="text-muted">
                         {% if unread_alerts > 0 %}
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#alertsModal">View all alerts</a>
+                            <a href="#" class="text-warning text-decoration-none" data-bs-toggle="modal" data-bs-target="#alertsModal">Verify pending alerts</a>
                         {% else %}
-                            No new alerts
+                            No pending alerts
                         {% endif %}
                     </small>
                 </div>
@@ -118,41 +117,47 @@
     </div>
     
     <!-- Charts Row -->
-    <div class="row mb-4">
+    <div class="row mb-4 g-4">
+        <!-- Chart: Incident Trend -->
         <div class="col-md-8">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm h-100">
                 <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i> Incident Trend</h5>
+                    <h5 class="mb-0 text-white"><i class="fas fa-chart-line me-2 text-primary"></i> Incident Trends (Last 7 Days)</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="incidentTrendChart" height="250"></canvas>
+                    <canvas id="incidentTrendChart" height="240"></canvas>
                 </div>
             </div>
         </div>
         
+        <!-- Chart: Incident Types -->
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm h-100">
                 <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Incident Types</h5>
+                    <h5 class="mb-0 text-white"><i class="fas fa-chart-pie me-2 text-primary"></i> Incident Categories</h5>
                 </div>
-                <div class="card-body">
-                    <canvas id="incidentTypesChart" height="250"></canvas>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <div class="w-100" style="max-width: 250px;">
+                        <canvas id="incidentTypesChart" height="240"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Recent Activity and Safety Zones -->
-    <div class="row">
+    <!-- Recent Incidents & Safety Zones -->
+    <div class="row g-4">
+        <!-- Incident timeline -->
         <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Activity</h5>
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-white"><i class="fas fa-clock-rotate-left me-2 text-primary"></i> Recent Incidents Log</h5>
+                    <a href="{{ url_for('admin.incidents') }}" class="btn btn-sm btn-outline-secondary">View all</a>
                 </div>
                 <div class="card-body p-0">
-                    <div class="incident-timeline p-3">
-                        {% if recent_incidents > 0 %}
-                            {% for incident in incidents if incidents %}
+                    <div class="incident-timeline p-3" style="max-height: 400px; overflow-y: auto;">
+                        {% if incidents %}
+                            {% for incident in incidents %}
                                 <div class="incident-timeline-item 
                                     {% if incident.incident_type == 'fire' or incident.incident_type == 'explosion' %}
                                         safety-red
@@ -164,105 +169,93 @@
                                         safety-green
                                     {% endif %}
                                 ">
-                                    <h6>{{ incident.incident_type|capitalize }}</h6>
-                                    <p class="mb-1">
-                                        <small>{{ incident.timestamp.strftime('%d %b %Y, %H:%M') }}</small>
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h6 class="text-white fw-bold mb-0">{{ incident.incident_type|capitalize }}</h6>
+                                        <small class="text-muted" style="font-size: 0.75rem;">{{ incident.timestamp.strftime('%H:%M • %d %b') }}</small>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        Location: {{ (incident.camera.location if incident.camera else "External GPS Tag") }}
                                     </p>
-                                    <p class="mb-1">Location: 
-                                        {% if incident.camera %}
-                                            {{ incident.camera.location }}
-                                        {% else %}
-                                            {{ incident.latitude|round(4) }}, {{ incident.longitude|round(4) }}
-                                        {% endif %}
-                                    </p>
-                                    <a href="{{ url_for('admin.incident_detail', incident_id=incident.id) }}" class="btn btn-sm btn-outline-secondary">
-                                        View Details
+                                    <a href="{{ url_for('admin.incident_detail', incident_id=incident.id) }}" class="btn btn-sm btn-outline-light px-3 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                        Inspect Incident
                                     </a>
                                 </div>
                             {% endfor %}
                         {% else %}
-                            <div class="text-center py-4">
-                                <p class="text-muted mb-0">No recent incidents</p>
+                            <div class="text-center py-5">
+                                <i class="fas fa-clipboard-check fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">No safety incidents reported.</p>
                             </div>
                         {% endif %}
                     </div>
                 </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('admin.incidents') }}" class="btn btn-sm btn-primary">View All Incidents</a>
-                </div>
             </div>
         </div>
         
+        <!-- Safety zones distribution -->
         <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-map me-2"></i> Safety Zones Distribution</h5>
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-white"><i class="fas fa-map-location-dot me-2 text-primary"></i> Monitored Zones Grid</h5>
+                    <a href="{{ url_for('admin.map') }}" class="btn btn-sm btn-outline-secondary">View map</a>
                 </div>
                 <div class="card-body">
                     <canvas id="safetyDistributionChart" height="200"></canvas>
-                    <div class="row mt-3">
+                    <div class="row g-2 text-center mt-3 small text-muted">
                         <div class="col">
-                            <div class="d-flex align-items-center">
-                                <div class="legend-circle bg-success me-2"></div>
-                                <small>Safe: {{ zones|selectattr('safety_level', 'equalto', 0)|list|length }}</small>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span class="legend-circle bg-success me-2"></span>
+                                <span>Safe: {{ zones|selectattr('safety_level', 'equalto', 0)|list|length }}</span>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="d-flex align-items-center">
-                                <div class="legend-circle bg-warning me-2"></div>
-                                <small>Caution: {{ zones|selectattr('safety_level', 'equalto', 1)|list|length }}</small>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span class="legend-circle bg-warning me-2"></span>
+                                <span>Caution: {{ zones|selectattr('safety_level', 'equalto', 1)|list|length }}</span>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="d-flex align-items-center">
-                                <div class="legend-circle bg-orange me-2"></div>
-                                <small>High Caution: {{ zones|selectattr('safety_level', 'equalto', 2)|list|length }}</small>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span class="legend-circle bg-orange me-2"></span>
+                                <span>Orange: {{ zones|selectattr('safety_level', 'equalto', 2)|list|length }}</span>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="d-flex align-items-center">
-                                <div class="legend-circle bg-danger me-2"></div>
-                                <small>Unsafe: {{ zones|selectattr('safety_level', 'equalto', 3)|list|length }}</small>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span class="legend-circle bg-danger me-2"></span>
+                                <span>Unsafe: {{ zones|selectattr('safety_level', 'equalto', 3)|list|length }}</span>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('admin.map') }}" class="btn btn-sm btn-primary">View Full Map</a>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Alerts Modal -->
+    <!-- System Alerts modal -->
     <div class="modal fade" id="alertsModal" tabindex="-1" aria-labelledby="alertsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content card border-0 shadow">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="alertsModalLabel">
-                        <i class="fas fa-bell me-2"></i> System Alerts
+                        <i class="fas fa-bell me-2"></i> Surviellance Alerts Dispatcher
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0">
-                    <div class="p-3">
-                        <div class="form-check form-switch">
+                    <div class="p-3 d-flex justify-content-between align-items-center bg-black bg-opacity-20 border-bottom border-secondary-subtle">
+                        <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" id="alertSoundToggle" checked>
-                            <label class="form-check-label" for="alertSoundToggle">Enable Alert Sounds</label>
+                            <label class="form-check-label text-muted small" for="alertSoundToggle">Audio Notification Chime</label>
                         </div>
+                        <a href="{{ url_for('admin.alerts') }}" class="small text-decoration-none text-primary">Alerts Archive</a>
                     </div>
-                    <hr class="my-0">
-                    <div id="alertsList" class="p-3">
-                        <!-- Alerts will be dynamically populated here -->
+                    <div id="alertsList" class="p-4" style="max-height: 400px; overflow-y: auto;">
                         <div class="text-center py-4">
                             <span class="loader"></span>
-                            <p class="mt-3">Loading alerts...</p>
+                            <p class="mt-2 text-muted small">Loading dispatcher logs...</p>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <a href="{{ url_for('admin.alerts') }}" class="btn btn-primary">View All Alerts</a>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -274,8 +267,12 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Store JWT token for API calls (if needed)
-        localStorage.setItem('jwt_token', 'demoToken');
+        // Correctly bind active JWT token from Flask session context to browser localStorage
+        const token = "{{ jwt_token }}";
+        if (token) {
+            localStorage.setItem('jwt_token', token);
+            console.log('🔑 JWT token successfully refreshed in localStorage');
+        }
     });
 </script>
 {% endblock %}

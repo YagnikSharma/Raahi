@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}CCTV Video Analysis Hub | Raahi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h1 class="text-white mb-1"><i class="fas fa-circle-play me-2 text-primary"></i> CCTV Video Analysis Hub</h1>
+                    <p class="text-muted small mb-0">Upload urban surveillance footage to perform offline computer vision anomaly scans.</p>
+                </div>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode 1: Active Processing Progress -->
+    {% if status.is_processing %}
+    <div class="row justify-content-center py-5">
+        <div class="col-md-8 text-center">
+            <div class="card glass-panel p-5 shadow">
+                <div class="mb-4">
+                    <span class="loader"></span>
+                </div>
+                <h4 class="text-white fw-bold mb-2">Analyzing Video Footage</h4>
+                <p class="text-muted small mb-4" id="processingFileName">Scanning: {{ status.current_video }}</p>
+                
+                <!-- Progress Bar -->
+                <div class="progress mb-3" style="height: 12px; border-radius: 6px;">
+                    <div id="videoProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                         role="progressbar" style="width: {{ status.progress }}%" 
+                         aria-valuenow="{{ status.progress }}" aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
+                <span class="text-white fw-semibold" id="progressBarPercent">{{ status.progress }}% Complete</span>
+                <p class="text-muted small mt-2">AI is scanning frames for fire outbreaks, physical violence, and low-lighting visibility hazards...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode 2: Results Display Workspace -->
+    {% elif status.results %}
+    <div class="row g-4">
+        <!-- Processed Video Canvas -->
+        <div class="col-lg-7">
+            <div class="card shadow h-100">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0 text-white"><i class="fas fa-video me-2 text-primary"></i> Annotated CCTV Recording</h5>
+                </div>
+                <div class="card-body p-0 bg-black d-flex align-items-center justify-content-center" style="min-height: 400px;">
+                    <video class="w-100 h-100 rounded-bottom" controls>
+                        <source src="{{ url_for('static', filename=status.results.output_video) }}" type="video/video">
+                        <source src="{{ url_for('static', filename=status.results.output_video) }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between align-items-center py-3">
+                    <small class="text-muted">File: {{ status.results.original_name }}</small>
+                    <a href="{{ url_for('static', filename=status.results.output_video) }}" download class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        <i class="fas fa-download me-1"></i> Download Video
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hotspot Heatmaps and Anomaly Summary -->
+        <div class="col-lg-5">
+            <!-- Summary card -->
+            <div class="card glass-panel mb-4 shadow">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0 text-white"><i class="fas fa-chart-bar me-2 text-primary"></i> Anomaly Detections Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3 text-center">
+                        <div class="p-3 bg-dark bg-opacity-20 rounded border border-secondary border-dashed flex-fill mx-1">
+                            <h3 class="fw-bold text-danger">{{ status.results.total_detections }}</h3>
+                            <span class="small text-muted">Total Events</span>
+                        </div>
+                        <div class="p-3 bg-dark bg-opacity-20 rounded border border-secondary border-dashed flex-fill mx-1">
+                            <h3 class="fw-bold text-white">{{ status.results.summary.get('violence', 0) }}</h3>
+                            <span class="small text-muted">Violence</span>
+                        </div>
+                        <div class="p-3 bg-dark bg-opacity-20 rounded border border-secondary border-dashed flex-fill mx-1">
+                            <h3 class="fw-bold text-white">{{ status.results.summary.get('fire', 0) + status.results.summary.get('explosion', 0) }}</h3>
+                            <span class="small text-muted">Emergency</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success d-flex align-items-center py-2 mb-0">
+                        <i class="fas fa-circle-check me-2"></i>
+                        <small class="text-white">Detections have been mapped and loaded into the safety zones database.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Heatmap Visualization -->
+            <div class="card glass-panel mb-4 shadow">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0 text-white"><i class="fas fa-map me-2 text-primary"></i> Coordinate Density Heatmap</h5>
+                </div>
+                <div class="card-body text-center p-2 bg-black bg-opacity-30">
+                    <img src="{{ url_for('static', filename=status.results.heatmap_path) }}" alt="Density Heatmap" class="img-fluid rounded" style="max-height: 250px;">
+                </div>
+                <div class="card-footer bg-transparent text-center py-2">
+                    <small class="text-muted">Seaborn 2D Kernel Density Estimation mapping coordinates of anomalies.</small>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin.cctv_reset') }}" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-semibold">
+                    <i class="fas fa-rotate-left me-1"></i> Reset Workspace
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode 3: Upload Footage workspace -->
+    {% else %}
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-7">
+            <div class="card glass-panel shadow">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0 text-white"><i class="fas fa-cloud-arrow-up me-2 text-primary"></i> Upload Surveillance Video</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('admin.cctv_upload') }}" enctype="multipart/form-data">
+                        <div class="mb-4 text-center border-dashed border border-secondary p-4 rounded-3 bg-black bg-opacity-20">
+                            <i class="fas fa-film fa-3x text-muted mb-3"></i>
+                            <label class="form-label d-block text-white fw-bold mb-2">Select video file to analyze</label>
+                            <input class="form-control w-75 mx-auto mb-2" type="file" id="videoFile" name="video" accept="video/mp4,video/avi,video/quicktime,video/x-matroska" required>
+                            <small class="text-muted d-block">Supported Formats: MP4, AVI, MOV, MKV (Max: 500MB)</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-semibold">
+                            <i class="fas fa-play-circle me-1"></i> Start Anomaly Scans
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card glass-panel shadow h-100">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0 text-white"><i class="fas fa-circle-question me-2"></i> How CCTV Analysis Works</h5>
+                </div>
+                <div class="card-body p-4 text-muted small">
+                    <p class="mb-3">Our backend offline pipeline utilizes computer vision filters to identify incidents:</p>
+                    
+                    <ul class="list-group list-group-flush bg-transparent mb-3">
+                        <li class="list-group-item bg-transparent border-secondary-subtle px-0 py-2 d-flex gap-2 text-muted">
+                            <i class="fas fa-circle-check text-success mt-1"></i>
+                            <span><strong>Violence Scanning:</strong> Evaluates movement velocities and clusters to detect conflicts or physical assaults.</span>
+                        </li>
+                        <li class="list-group-item bg-transparent border-secondary-subtle px-0 py-2 d-flex gap-2 text-muted">
+                            <i class="fas fa-circle-check text-success mt-1"></i>
+                            <span><strong>Emergency Detections:</strong> Targets pixels of fire, smoke, and blasts using HSL chroma and contours.</span>
+                        </li>
+                        <li class="list-group-item bg-transparent border-0 px-0 py-2 d-flex gap-2 text-muted">
+                            <i class="fas fa-circle-check text-success mt-1"></i>
+                            <span><strong>Lighting Telemetry:</strong> Assesses frame luminosity thresholds to index poor-visibility blocks.</span>
+                        </li>
+                    </ul>
+
+                    <div class="alert alert-info py-2 mb-0 border-0">
+                        <small class="text-white">Incidents identified in the CCTV video will be registered in your live safety database around active coordinates to simulate real-time zone alerts.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if status.is_processing %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Poll status API every 1.5 seconds to refresh progress bar
+        const interval = setInterval(function() {
+            fetch('/admin/cctv-analysis/status')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.is_processing) {
+                        const progress = data.progress || 0;
+                        document.getElementById('videoProgressBar').style.width = progress + '%';
+                        document.getElementById('progressBarPercent').textContent = progress + '% Complete';
+                    } else {
+                        clearInterval(interval);
+                        // Refresh page to load results or error workspace
+                        window.location.reload();
+                    }
+                })
+                .catch(err => {
+                    console.error('Polling error:', err);
+                });
+        }, 1500);
+    });
+</script>
+{% endif %}
+{% endblock %}
