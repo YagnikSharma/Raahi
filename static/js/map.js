@@ -34,15 +34,39 @@ class SafetyMap {
             this.options.defaultZoom
         );
         
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        // Add CartoDB tiles based on current theme
+        const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+        const tileUrl = currentTheme === 'light' 
+            ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+        
+        this.baseTileLayer = L.tileLayer(tileUrl, {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(this.map);
+        
+        // Listen for theme change events to dynamically switch map style
+        document.addEventListener('themeChanged', (e) => {
+            const newTheme = e.detail.theme;
+            if (this.baseTileLayer && this.map) {
+                this.map.removeLayer(this.baseTileLayer);
+                const newUrl = newTheme === 'light'
+                    ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+                this.baseTileLayer = L.tileLayer(newUrl, {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 20
+                }).addTo(this.map);
+            }
+        });
         
         // Create layer groups
         this.zonesLayer = L.layerGroup().addTo(this.map);
         this.incidentsLayer = L.layerGroup().addTo(this.map);
         this.camerasLayer = L.layerGroup().addTo(this.map);
+        this.routeLayers = []; // Cache route polylines
         
         // Add layer controls
         const overlays = {
@@ -275,6 +299,59 @@ class SafetyMap {
             'bg-danger'     // Unsafe (3)
         ];
         return classes[Math.min(safetyLevel, 3)];
+    }
+    
+    clearRoutes() {
+        this.routeLayers.forEach(layer => this.map.removeLayer(layer));
+        this.routeLayers = [];
+    }
+    
+    evaluateRouteSafety(startLat, startLng, endLat, endLng, uiCallback) {
+        this.clearRoutes();
+        
+        const url = `/api/route-safety?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endLat}&end_lng=${endLng}`;
+        
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.routes) {
+                    const allLatLngs = [];
+                    
+                    data.routes.forEach(route => {
+                        // Draw route polyline
+                        const polyline = L.polyline(route.coordinates, {
+                            color: route.color,
+                            weight: route.id === 'safest' ? 6 : 4,
+                            opacity: route.id === 'safest' ? 0.95 : 0.6,
+                            dashArray: route.id === 'direct' && route.safety_level >= 2 ? '5, 10' : null
+                        }).addTo(this.map);
+                        
+                        polyline.bindPopup(`
+                            <h6>${route.name}</h6>
+                            <p>Distance: <b>${route.distance} km</b> | Est. Time: <b>${route.duration} mins</b></p>
+                            <p>Safety Score: <span class="badge ${this.getSafetyBadgeClass(route.safety_level)}">${route.safety_score}%</span></p>
+                        `);
+                        
+                        this.routeLayers.push(polyline);
+                        
+                        // Collect coordinates to fit map bounds
+                        route.coordinates.forEach(coord => allLatLngs.push(coord));
+                    });
+                    
+                    // Fit bounds to show all routes
+                    if (allLatLngs.length > 0) {
+                        const bounds = L.latLngBounds(allLatLngs);
+                        this.map.fitBounds(bounds, { padding: [40, 40] });
+                    }
+                    
+                    if (uiCallback) {
+                        uiCallback(data.routes);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching route safety paths:', err);
+            });
     }
 }
 

@@ -1,214 +1,341 @@
 {% extends 'base.html' %}
 
-{% block title %}Raahi - AI-Powered Public Safety Platform | Team Ghost{% endblock %}
+{% block title %}Raahi - AI-Powered Public Safety Platform | Team Garun{% endblock %}
+
+{% block styles %}
+<style>
+  /* Custom Hero Animations & Glowing */
+  .hero-gradient-text {
+    background: linear-gradient(135deg, #ffffff 30%, var(--primary) 70%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: textShine 6s linear infinite;
+  }
+  
+  @keyframes textShine {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .pulse-primary {
+    animation: badgePulse 2s infinite alternate;
+  }
+
+  @keyframes badgePulse {
+    0% { box-shadow: 0 0 5px rgba(79, 70, 229, 0.2), 0 0 0 1px var(--primary); }
+    100% { box-shadow: 0 0 15px rgba(79, 70, 229, 0.6), 0 0 0 2px var(--primary); }
+  }
+
+  /* Storyline Interactions */
+  .storyline-step {
+    border-left: 3px solid transparent;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  
+  .storyline-step.active-step {
+    background: rgba(255, 255, 255, 0.03);
+    border-left-color: var(--primary) !important;
+    padding-left: 1.25rem !important;
+  }
+
+  [data-bs-theme="light"] .storyline-step.active-step {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  /* Keyframe animations for simulator */
+  @keyframes scanPulse {
+    from { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4), 0 0 0 1px rgba(239, 68, 68, 0.4); }
+    to { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8), 0 0 0 3px rgba(239, 68, 68, 0.5); }
+  }
+
+  .simulator-window {
+    border: 1px solid var(--border-light);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
+<!-- Hero Section -->
 <div class="landing-header py-5 text-white">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Raahi: Making Cities Safer with AI</h1>
-                <p class="lead mb-4">An intelligent public safety platform that uses computer vision to detect emergencies, visualize safety zones, and help you make informed travel decisions.</p>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                    <a href="{{ url_for('public.map') }}" class="btn btn-primary btn-lg px-4 me-md-2">View Safety Map</a>
-                    <a href="{{ url_for('public.incidents') }}" class="btn btn-outline-light btn-lg px-4">Recent Incidents</a>
+    <div class="container py-4">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7 text-center text-lg-start">
+                <div class="badge bg-primary-glow border border-primary text-primary px-3 py-2 rounded-pill mb-3 fs-6 pulse-primary">
+                    <i class="fas fa-shield-halved me-1"></i> AI Public Safety Watch
+                </div>
+                <h1 class="display-3 fw-bold mb-4 text-white hero-gradient-text" style="line-height: 1.15; letter-spacing: -0.03em;">
+                    Raahi: Navigating Cities with AI Intelligence
+                </h1>
+                <p class="lead text-muted mb-4 fs-5" style="max-width: 580px; font-family: var(--font-sans);">
+                    An enterprise-grade public safety dashboard that uses computer vision to monitor cameras, classify urban safety zones, and secure commutes.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                    <a href="{{ url_for('public.map') }}" class="btn btn-primary btn-lg px-4 rounded-pill shadow-lg hover-lift">
+                        <i class="fas fa-map-marked-alt me-2"></i>View Safety Map
+                    </a>
+                    <a href="{{ url_for('public.live_detection') }}" class="btn btn-outline-light btn-lg px-4 rounded-pill hover-lift">
+                        <i class="fas fa-video me-2"></i>Live CCTV Detections
+                    </a>
                 </div>
             </div>
-            <div class="col-lg-6 d-none d-lg-block">
-                <div class="text-center">
-                    <img src="https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&auto=format&fit=crop" alt="CCTV Camera" class="img-fluid rounded shadow">
+            
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="hero-glow-shield text-center">
+                    <!-- Glowing SVG Shield -->
+                    <svg width="340" height="340" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 15px 35px rgba(79, 70, 229, 0.4));">
+                        <path d="M12 22C17.5 19.5 20 14.5 20 8.5V4.5L12 1.5L4 4.5V8.5C4 14.5 6.5 19.5 12 22Z" fill="url(#shieldGrad)" stroke="#4f46e5" stroke-width="0.5"/>
+                        <path d="M12 5V18.5" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M8.5 12H15.5" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="shieldGrad" x1="4" y1="1.5" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#4f46e5" stop-opacity="0.8"/>
+                                <stop offset="1" stop-color="#06b6d4" stop-opacity="0.3"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container my-5">
-    <div class="row text-center mb-5">
-        <div class="col-md-12">
-            <h2 class="display-5 fw-bold">From the Heart of Team Ghost</h2>
-            <p class="lead">Raahi is built with a mission to create safer urban spaces for everyone.</p>
+<!-- Features Section -->
+<div class="container my-5 py-4">
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="card h-100 p-3 glass-panel">
+                <div class="card-body">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-3 p-3 mb-3 d-inline-flex">
+                        <i class="fas fa-eye fa-lg"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-2">Real-time CCTV Detection</h4>
+                    <p class="card-text text-muted">Constantly scans video feeds using YOLO models to detect fires, physical violence, and poor visibility condition markers.</p>
+                </div>
+            </div>
         </div>
+        <div class="col-md-4">
+            <div class="card h-100 p-3 glass-panel">
+                <div class="card-body">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-3 p-3 mb-3 d-inline-flex">
+                        <i class="fas fa-route fa-lg"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-2">Route Safety Planner</h4>
+                    <p class="card-text text-muted">Dynamically evaluates travel routes, highlighting hazards and suggesting detours to avoid unsafe red zones.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 p-3 glass-panel">
+                <div class="card-body">
+                    <div class="feature-icon bg-danger bg-gradient text-white rounded-3 p-3 mb-3 d-inline-flex">
+                        <i class="fas fa-microphone-alt fa-lg"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-2">Voice-based SOS triggers</h4>
+                    <p class="card-text text-muted">Local speech-to-text recognition listens continuously for keywords ("help me", "save me") to execute instant alerts.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scroll Storyline Section -->
+<div class="bg-black border-top border-bottom border-secondary-subtle py-5">
+    <div class="container py-4">
+        <div class="row align-items-center g-5">
+            <!-- Left Narrative -->
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold text-white mb-4" style="letter-spacing: -0.02em;">How Raahi Protects Your Journey</h2>
+                <p class="text-muted mb-4 fs-6">
+                    Hover or tap on any step to simulate Raahi's real-time computer vision, grid algorithms, secure routing, and audio SOS guard loops.
+                </p>
+                
+                <div class="storyline-container border-0 ps-0 m-0">
+                    <div class="storyline-step p-3 mb-2 rounded cursor-pointer" data-step="1">
+                        <h5 class="text-white fw-bold mb-1"><i class="fas fa-circle-notch text-primary me-2"></i>1. CCTV Monitoring</h5>
+                        <p class="text-muted small mb-0">AI YOLO models process frames from active CCTV grids, classifying occurrences of danger hotspots.</p>
+                    </div>
+                    <div class="storyline-step p-3 mb-2 rounded cursor-pointer" data-step="2">
+                        <h5 class="text-white fw-bold mb-1"><i class="fas fa-chart-pie text-success me-2"></i>2. Grid Area Scoring</h5>
+                        <p class="text-muted small mb-0">The database calculates incident density, color-coding blocks into Green, Yellow, Orange, or Red zones.</p>
+                    </div>
+                    <div class="storyline-step p-3 mb-2 rounded cursor-pointer" data-step="3">
+                        <h5 class="text-white fw-bold mb-1"><i class="fas fa-map-signs text-info me-2"></i>3. Secure Route Mapping</h5>
+                        <p class="text-muted small mb-0">Citizens request routes and get alternative detours tailored to avoid unsafe zones.</p>
+                    </div>
+                    <div class="storyline-step p-3 mb-2 rounded cursor-pointer" data-step="4">
+                        <h5 class="text-white fw-bold mb-1"><i class="fas fa-radiation text-danger me-2"></i>4. SOS Alert Response</h5>
+                        <p class="text-muted small mb-0">Voice triggers or manual SOS events instantly broadcast location data to administrative dispatch panels.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Live Simulator -->
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="simulator-window glass-panel p-4" style="height: 380px; position: relative; overflow: hidden; border-radius: 20px;">
+                    <!-- Window Chrome Buttons -->
+                    <div class="d-flex align-items-center gap-2 mb-3 border-bottom border-secondary-subtle pb-2">
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; display: inline-block;"></span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #f59e0b; display: inline-block;"></span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #10b981; display: inline-block;"></span>
+                        <span class="text-muted small ms-2" style="font-family: var(--font-display); font-size: 0.75rem;">Raahi Threat Engine Simulator</span>
+                    </div>
+                    
+                    <!-- Active Screen Contents -->
+                    <!-- State 1: YOLO Scan -->
+                    <div id="simScreen1" class="sim-screen active-screen h-100 d-flex flex-column justify-content-center align-items-center">
+                        <div class="mock-cctv-feed" style="position: relative; width: 100%; height: 260px; background: #111; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-light);">
+                            <div class="scanline" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; z-index: 2; pointer-events: none;"></div>
+                            <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&auto=format&fit=crop" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6) contrast(1.2);">
+                            <div class="yolo-box" style="position: absolute; top: 35%; left: 30%; width: 40%; height: 50%; border: 2px solid var(--safety-red); border-radius: 4px; box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); z-index: 3; animation: scanPulse 1.5s infinite alternate;">
+                                <span style="position: absolute; top: -20px; left: 0; background: var(--safety-red); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-weight: bold;">Fire Detected (96%)</span>
+                            </div>
+                            <div style="position: absolute; top: 10px; left: 10px; color: #10b981; font-family: monospace; font-size: 0.7rem; z-index: 3;">● CAM-2849 LIVE FEED</div>
+                            <div style="position: absolute; bottom: 10px; right: 10px; color: #fff; font-family: monospace; font-size: 0.7rem; z-index: 3;">SYSTEM WATCH ACTIVE</div>
+                        </div>
+                    </div>
+                    
+                    <!-- State 2: Grid Area -->
+                    <div id="simScreen2" class="sim-screen h-100 d-flex flex-column justify-content-center" style="display: none !important;">
+                        <div class="mock-grid-matrix p-3" style="width: 100%; height: 260px; background: #0c0d12; border-radius: 12px; border: 1px solid var(--border-light); font-family: monospace; font-size: 0.75rem;">
+                            <div class="text-success mb-2">&gt; Grid Index Analytics active...</div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-4"><div class="p-2 border border-secondary text-center rounded text-success" style="background: rgba(16, 185, 129, 0.05);">Zone 1: Safe<br>Score 98</div></div>
+                                <div class="col-4"><div class="p-2 border border-warning text-center rounded text-warning" style="background: rgba(245, 158, 11, 0.05);">Zone 2: Caution<br>Score 72</div></div>
+                                <div class="col-4"><div class="p-2 border border-danger text-center rounded text-danger" style="background: rgba(239, 68, 68, 0.05);">Zone 3: Danger<br>Score 34</div></div>
+                            </div>
+                            <div class="p-2 border border-secondary rounded" style="background: rgba(255,255,255,0.01);">
+                                <div class="d-flex justify-content-between mb-1"><span>System Status:</span><span class="text-success">NOMINAL</span></div>
+                                <div class="d-flex justify-content-between mb-1"><span>Safety Index Map:</span><span>8 Grid Sectors Updated</span></div>
+                                <div class="d-flex justify-content-between"><span>Incident Rate:</span><span>-12.4% last 24h</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- State 3: Secure Route -->
+                    <div id="simScreen3" class="sim-screen h-100 d-flex flex-column justify-content-center" style="display: none !important;">
+                        <div class="mock-map-routes p-3" style="width: 100%; height: 260px; background: #0c0d12; border-radius: 12px; border: 1px solid var(--border-light); position: relative; overflow: hidden;">
+                            <svg width="100%" height="100%" viewBox="0 0 100 60" style="position: absolute; top:0; left:0;">
+                                <path d="M 0,10 L 100,10 M 0,20 L 100,20 M 0,30 L 100,30 M 0,40 L 100,40 M 0,50 L 100,50 M 10,0 L 10,60 M 20,0 L 20,60 M 30,0 L 30,60 M 40,0 L 40,60 M 50,0 L 50,60 M 60,0 L 60,60 M 70,0 L 70,60 M 80,0 L 80,60 M 90,0 L 90,60" stroke="#ffffff" stroke-width="0.05" stroke-opacity="0.1" />
+                                <circle cx="50" cy="30" r="10" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="0.3" stroke-dasharray="2 1" />
+                                <circle cx="50" cy="30" r="1.5" fill="#ef4444" />
+                                
+                                <path d="M 10,50 L 50,30 L 90,10" stroke="#ef4444" stroke-width="0.8" fill="none" stroke-dasharray="1.5 1" stroke-opacity="0.6" />
+                                <path d="M 10,50 Q 35,15 90,10" stroke="#10b981" stroke-width="1.2" fill="none" stroke-linecap="round" />
+                                
+                                <text x="12" y="54" fill="#fff" font-size="3.5" font-family="sans-serif" font-weight="bold">Start</text>
+                                <text x="82" y="8" fill="#fff" font-size="3.5" font-family="sans-serif" font-weight="bold">Goal</text>
+                            </svg>
+                            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(7,8,11,0.8); border: 1px solid var(--border-light); border-radius: 6px; padding: 4px 8px; font-size: 0.65rem; color: #fff;">
+                                🛡️ <span class="text-success">Safest Route Selected</span>: 3.2km (Avoids danger grid)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- State 4: SOS Terminal -->
+                    <div id="simScreen4" class="sim-screen h-100 d-flex flex-column justify-content-center" style="display: none !important;">
+                        <div class="mock-sos-terminal p-3" style="width: 100%; height: 260px; background: #0c0d12; border-radius: 12px; border: 1px solid var(--border-light); font-family: monospace; font-size: 0.72rem; border-left: 3px solid var(--safety-red);">
+                            <div class="text-danger mb-1 fw-bold pulse-danger p-1 rounded" style="display: inline-block;">⚠️ EMERGENCY ALARM TRIGGERED</div>
+                            <div style="color: #9ca3af; line-height: 1.4; font-size: 0.65rem; max-height: 190px; overflow: hidden;">
+                                <div>[23:14:07] [SYSTEM] Scanning Voice guardian pipeline...</div>
+                                <div class="text-warning">[23:14:08] [AUDIO] Keyphrase match: "help me" detected</div>
+                                <div class="text-danger">[23:14:08] [ALERT] Initializing automated emergency routing...</div>
+                                <div>[23:14:09] [DATABASE] Seeding active alert log [ID: 948192]</div>
+                                <div>[23:14:09] [NOTIFICATION] Broadcasting location coords (28.6139, 77.2090)</div>
+                                <div class="text-success">[23:14:10] [DISPATCH] Operator control room alerted. First responders notified.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Choose Role Section -->
+<div class="container my-5 py-5">
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold mb-2" style="letter-spacing: -0.02em;">Choose Your Workspace</h2>
+        <p class="text-muted">Access Raahi depending on your operational role.</p>
     </div>
     
-    <div class="row g-4 py-4">
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3">
-                        <i class="fas fa-eye fa-2x"></i>
-                    </div>
-                    <h3 class="card-title">Real-time Detection</h3>
-                    <p class="card-text">Our AI constantly monitors CCTV footage to detect emergencies like fires, assaults, and other threats.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3">
-                        <i class="fas fa-map-marked-alt fa-2x"></i>
-                    </div>
-                    <h3 class="card-title">Safety Visualization</h3>
-                    <p class="card-text">Color-coded safety zones help you identify safe areas and make informed travel decisions.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <div class="feature-icon bg-danger bg-gradient text-white rounded-circle mb-3">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    </div>
-                    <h3 class="card-title">Emergency Response</h3>
-                    <p class="card-text">Quick SOS triggers and emergency alerts help connect you with emergency services when needed.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="bg-light py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h2 class="display-5 fw-bold mb-4">How Raahi Works</h2>
-                <div class="accordion" id="howItWorksAccordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                AI-Powered Detection
-                            </button>
-                        </h2>
-                        <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#howItWorksAccordion">
-                            <div class="accordion-body">
-                                <p>Our platform uses advanced computer vision algorithms to analyze CCTV footage and detect potential safety threats like fires, explosions, assaults, and poor visibility conditions.</p>
-                            </div>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-5">
+            <div class="card glass-panel h-100 hover-lift text-center p-4">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="fs-1 text-primary mb-3">
+                            <i class="fas fa-street-view"></i>
                         </div>
+                        <h3 class="fw-bold card-title mb-3">Public Portal</h3>
+                        <p class="text-muted">Check real-time Safety Map, plan secure routes, browse reported incidents, and access voice protection modules without logging in.</p>
                     </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                Safety Classification
-                            </button>
-                        </h2>
-                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#howItWorksAccordion">
-                            <div class="accordion-body">
-                                <p>Areas are classified into safety zones based on incident history:</p>
-                                <ul class="list-unstyled">
-                                    <li><span class="badge bg-success">Green</span> - Safe (0 incidents)</li>
-                                    <li><span class="badge bg-warning">Yellow</span> - Caution (1-2 incidents)</li>
-                                    <li><span class="badge bg-orange">Orange</span> - High Caution (3-5 incidents)</li>
-                                    <li><span class="badge bg-danger">Red</span> - Unsafe (>5 incidents)</li>
-                                </ul>
-                            </div>
+                    <div class="mt-4">
+                        <a href="{{ url_for('public.map') }}" class="btn btn-outline-light w-100 rounded-pill py-2">Open Citizen Map</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card glass-panel h-100 hover-lift text-center p-4">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="fs-1 text-danger mb-3">
+                            <i class="fas fa-lock"></i>
                         </div>
+                        <h3 class="fw-bold card-title mb-3">Control Dashboard</h3>
+                        <p class="text-muted">For authorized safety personnel. Review live system alerts, verify incidents, analyze video recordings, and manage CCTV cameras.</p>
                     </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                Public Access
-                            </button>
-                        </h2>
-                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#howItWorksAccordion">
-                            <div class="accordion-body">
-                                <p>Anyone can access the safety map without login, helping citizens make informed travel decisions. Yellow and orange zones are for information only - use your discretion when traveling.</p>
-                            </div>
-                        </div>
+                    <div class="mt-4">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary w-100 rounded-pill py-2">Access Control Center</a>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-6 d-none d-lg-block">
-                <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&auto=format&fit=crop" alt="Safety Map" class="img-fluid rounded shadow">
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container my-5">
-    <div class="row text-center mb-4">
-        <div class="col-md-12">
-            <h2 class="display-5 fw-bold">Choose Your Role</h2>
-            <p class="lead">Raahi serves different user needs based on your role.</p>
-        </div>
-    </div>
-    
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card border-primary h-100">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Public Visitor</h3>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">View safety heatmap without login</li>
-                        <li class="list-group-item">Check recent incidents in your area</li>
-                        <li class="list-group-item">Trigger SOS alerts in emergencies</li>
-                        <li class="list-group-item">Make informed travel decisions</li>
-                    </ul>
-                </div>
-                <div class="card-footer bg-transparent border-0">
-                    <a href="{{ url_for('public.map') }}" class="btn btn-outline-primary w-100">Continue as Visitor</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card border-danger h-100">
-                <div class="card-header bg-danger text-white">
-                    <h3 class="mb-0">Administrator</h3>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">Secure login required</li>
-                        <li class="list-group-item">Monitor all incidents and alerts</li>
-                        <li class="list-group-item">Review CCTV anomaly detections</li>
-                        <li class="list-group-item">Manage safety zones and cameras</li>
-                    </ul>
-                </div>
-                <div class="card-footer bg-transparent border-0">
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-danger w-100">Login as Admin</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="bg-dark text-white py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <h2 class="display-5 fw-bold">Emergency Response</h2>
-                <p class="lead">When every second counts, Raahi is there to help.</p>
-                <p>Our platform includes a prominent SOS button that allows users to quickly alert emergency services in critical situations. Your location is shared only with authorized personnel to ensure timely help.</p>
-                <button class="btn btn-danger btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#sosModal">
-                    <i class="fas fa-exclamation-triangle me-2"></i> Try SOS Feature
-                </button>
-            </div>
-            <div class="col-lg-6 d-none d-lg-block">
-                <img src="https://images.unsplash.com/photo-1587745416684-47953f16f02f?w=800&auto=format&fit=crop" alt="Emergency Response" class="img-fluid rounded shadow">
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block styles %}
-<style>
-    .landing-header {
-        background: linear-gradient(to right, #1a1a2e, #16213e);
-        padding: 4rem 0;
-    }
-    
-    .feature-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 4rem;
-        height: 4rem;
-    }
-    
-    .bg-orange {
-        background-color: #fd7e14 !important;
-    }
-</style>
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const steps = document.querySelectorAll('.storyline-step');
+        const screens = document.querySelectorAll('.sim-screen');
+        
+        function activateStep(index) {
+            steps.forEach((s, idx) => {
+                if(idx === index) {
+                    s.classList.add('active-step');
+                } else {
+                    s.classList.remove('active-step');
+                }
+            });
+            
+            screens.forEach((screen, idx) => {
+                if (idx === index) {
+                    screen.style.setProperty('display', 'flex', 'important');
+                    screen.classList.add('active-screen');
+                } else {
+                    screen.style.setProperty('display', 'none', 'important');
+                    screen.classList.remove('active-screen');
+                }
+            });
+        }
+        
+        steps.forEach((step, index) => {
+            step.addEventListener('mouseenter', () => {
+                activateStep(index);
+            });
+            
+            step.addEventListener('click', () => {
+                activateStep(index);
+            });
+        });
+        
+        // Initialize first step
+        activateStep(0);
+    });
+</script>
 {% endblock %}

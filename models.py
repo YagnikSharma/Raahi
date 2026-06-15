@@ -79,6 +79,9 @@ class Alert(db.Model):
     """SOS and system alerts model"""
     id = db.Column(db.Integer, primary_key=True)
     alert_type = db.Column(db.String(50), nullable=False)  # sos, system, detection
+    trigger_type = db.Column(db.String(50), default="manual")  # sos_button, voice_keyword, cctv_yolo, offline_video, manual
+    severity = db.Column(db.String(20), default="medium")  # low, medium, high, critical
+    source = db.Column(db.String(100), default="system")  # cctv name, video file name, system
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     message = db.Column(db.Text, nullable=False)
@@ -89,4 +92,4 @@ class Alert(db.Model):
     incident_id = db.Column(db.Integer, db.ForeignKey('incident.id'), nullable=True)  # Related incident if any
     
     def __repr__(self):
-        return f'<Alert {self.alert_type} at {self.timestamp}>'
+        return f'<Alert {self.alert_type} ({self.trigger_type}) at {self.timestamp}>'

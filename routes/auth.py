@@ -28,6 +28,11 @@ def login():
         user.last_login = datetime.datetime.utcnow()
         db.session.commit()
         
+        # Store JWT token in session for API access
+        from flask import session
+        from flask_jwt_extended import create_access_token
+        session['jwt_token'] = create_access_token(identity=str(user.id))
+        
         # Redirect to the page the user was trying to access
         next_page = request.args.get('next')
         if not next_page or not next_page.startswith('/'):

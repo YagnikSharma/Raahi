@@ -157,3 +157,239 @@ def profile():
                 flash('Password updated successfully.', 'success')
     
     return render_template('admin/profile.html')
+
+# CCTV Video Hub processing imports
+import os
+import threading
+import shutil
+import random
+from werkzeug.utils import secure_filename
+
+# Global processing status
+video_processing_status = {
+    'is_processing': False,
+    'progress': 0,
+    'current_video': None,
+    'results': None,
+    'error': None
+}
+
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
+
+def update_progress(progress):
+    video_processing_status['progress'] = int(progress)
+
+def process_video_async(flask_app, video_path, model_path=None):
+    global video_processing_status
+    
+    with flask_app.app_context():
+        try:
+            video_processing_status['is_processing'] = True
+            video_processing_status['progress'] = 0
+            video_processing_status['error'] = None
+            
+            # Create directories under static
+            uploads_dir = os.path.join(flask_app.static_folder, 'uploads')
+            processed_dir = os.path.join(flask_app.static_folder, 'processed')
+            os.makedirs(uploads_dir, exist_ok=True)
+            os.makedirs(processed_dir, exist_ok=True)
+            
+            # Initialize detector
+            from anomaly_detector import AnomalyDetector
+            detector = AnomalyDetector(model_path=model_path or 'best.pt')
+            
+            # Process video
+            results = detector.process_video(video_path, progress_callback=update_progress)
+            
+            # Initialize heatmap generator
+            from heatmap_generator import HeatmapGenerator
+            heatmap_gen = HeatmapGenerator()
+            
+            # Get video dimensions
+            cap = cv2.VideoCapture(video_path)
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            cap.release()
+            
+            video_filename = os.path.basename(video_path)
+            
+            # Generate heatmaps in root, then move them
+            heatmap_path, detection_count = heatmap_gen.generate_heatmap(
+                video_name=video_filename,
+                video_width=width,
+                video_height=height
+            )
+            
+            class_heatmaps = heatmap_gen.generate_class_heatmaps(
+                video_name=video_filename,
+                video_width=width,
+                video_height=height
+            )
+            
+            summary = heatmap_gen.get_detection_summary(video_filename)
+            
+            # Move generated outputs to static/processed folder
+            safe_video_name = video_filename.rsplit('.', 1)[0]
+            
+            target_video = f"processed_{video_filename}"
+            target_video_path = os.path.join(processed_dir, target_video)
+            if os.path.exists('output.mp4'):
+                shutil.move('output.mp4', target_video_path)
+                
+            target_heatmap = f"heatmap_{safe_video_name}.png"
+            target_heatmap_path = os.path.join(processed_dir, target_heatmap)
+            if os.path.exists('heatmap.png'):
+                shutil.move('heatmap.png', target_heatmap_path)
+                
+            processed_class_heatmaps = {}
+            for class_name, temp_path in class_heatmaps.items():
+                if os.path.exists(temp_path):
+                    target_ch = f"heatmap_{safe_video_name}_{class_name}.png"
+                    shutil.move(temp_path, os.path.join(processed_dir, target_ch))
+                    processed_class_heatmaps[class_name] = f"processed/{target_ch}"
+            
+            # Create Mock Incidents & Alerts in safety database
+            camera = Camera.query.first()
+            if not camera:
+                # Create default camera if none exists
+                default_lat = current_app.config.get('DEFAULT_LAT', 28.6139)
+                default_lng = current_app.config.get('DEFAULT_LNG', 77.2090)
+                camera = Camera(
+                    name="CCTV-1",
+                    location="Main Boulevard Intersection",
+                    latitude=default_lat,
+                    longitude=default_lng,
+                    status="active"
+                )
+                db.session.add(camera)
+                db.session.commit()
+                
+            # Log incidents to the DB to dynamically populate the citizen maps
+            for anomaly_type, count in summary.items():
+                if count > 0:
+                    for _ in range(min(count, 3)): # cap at 3 per type to avoid clustering too densely
+                        lat_offset = random.uniform(-0.005, 0.005)
+                        lng_offset = random.uniform(-0.005, 0.005)
+                        lat = camera.latitude + lat_offset
+                        lng = camera.longitude + lng_offset
+                        
+                        incident = Incident(
+                            incident_type=anomaly_type,
+                            latitude=lat,
+                            longitude=lng,
+                            confidence=random.uniform(0.72, 0.94),
+                            camera_id=camera.id,
+                            details=f"Offline YOLO detection from CCTV video upload: {video_filename}"
+                        )
+                        db.session.add(incident)
+                        db.session.commit()
+                        
+                        create_alert(
+                            alert_type='detection',
+                            message=f"Offline YOLO: {anomaly_type.replace('_', ' ').capitalize()} identified in camera recordings",
+                            latitude=lat,
+                            longitude=lng,
+                            incident_id=incident.id,
+                            trigger_type='offline_video',
+                            severity='high',
+                            source=video_filename
+                        )
+                        
+                        update_zone_safety(lat, lng, anomaly_type)
+            
+            # Store results
+            video_processing_status['results'] = {
+                'total_detections': results['total_detections'],
+                'summary': summary,
+                'heatmap_path': f"processed/{target_heatmap}",
+                'class_heatmaps': processed_class_heatmaps,
+                'output_video': f"processed/{target_video}",
+                'detection_count': detection_count,
+                'original_name': video_filename
+            }
+            
+            video_processing_status['progress'] = 100
+            
+        except Exception as e:
+            flask_app.logger.error(f"Error processing video in thread: {e}")
+            video_processing_status['error'] = str(e)
+        finally:
+            video_processing_status['is_processing'] = False
+
+@admin_bp.route('/cctv-analysis')
+def cctv_analysis():
+    """Admin page for CCTV offline video upload and processing"""
+    return render_template('admin/video_hub.html', status=video_processing_status)
+
+@admin_bp.route('/cctv-analysis/upload', methods=['POST'])
+def cctv_upload():
+    """Handle video uploads and launch background processing thread"""
+    global video_processing_status
+    
+    if video_processing_status['is_processing']:
+        flash('Another video is currently being processed. Please wait.', 'warning')
+        return redirect(url_for('admin.cctv_analysis'))
+        
+    if 'video' not in request.files:
+        flash('No video file selected', 'danger')
+        return redirect(url_for('admin.cctv_analysis'))
+        
+    file = request.files['video']
+    if file.filename == '':
+        flash('No video file selected', 'danger')
+        return redirect(url_for('admin.cctv_analysis'))
+        
+    if file and allowed_file(file.filename):
+        uploads_dir = os.path.join(current_app.static_folder, 'uploads')
+        os.makedirs(uploads_dir, exist_ok=True)
+        
+        filename = secure_filename(file.filename)
+        video_path = os.path.join(uploads_dir, filename)
+        file.save(video_path)
+        
+        # Reset status
+        video_processing_status = {
+            'is_processing': True,
+            'progress': 0,
+            'current_video': filename,
+            'results': None,
+            'error': None
+        }
+        
+        # Get active Flask app reference for context in thread
+        flask_app = current_app._get_current_object()
+        
+        # Start thread
+        thread = threading.Thread(target=process_video_async, args=(flask_app, video_path))
+        thread.start()
+        
+        flash(f'Video "{filename}" uploaded successfully! Anomaly processing started in the background.', 'success')
+        return redirect(url_for('admin.cctv_analysis'))
+    else:
+        flash('Invalid video format. Allowed formats: MP4, AVI, MOV, MKV', 'danger')
+        return redirect(url_for('admin.cctv_analysis'))
+
+@admin_bp.route('/cctv-analysis/status')
+def cctv_status():
+    """API endpoint to fetch real-time video processing progress"""
+    return jsonify(video_processing_status)
+
+@admin_bp.route('/cctv-analysis/reset')
+def cctv_reset():
+    """Reset processing state and clear current results cache"""
+    global video_processing_status
+    if video_processing_status['is_processing']:
+        flash('Cannot reset while video processing is active.', 'warning')
+    else:
+        video_processing_status = {
+            'is_processing': False,
+            'progress': 0,
+            'current_video': None,
+            'results': None,
+            'error': None
+        }
+        flash('Video analysis workspace reset successfully.', 'success')
+    return redirect(url_for('admin.cctv_analysis'))

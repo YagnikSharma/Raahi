@@ -1,60 +1,61 @@
-/* Custom styles for the Raahi platform that augment the Bootstrap theme */
+/* 
+ * Raahi Safety Platform - Custom CSS Overrides and Layouts
+ * Augments the base Bootstrap and style tokens
+ */
 
-/* Custom safety color definitions */
-.bg-orange {
-  background-color: #fd7e14 !important;
-}
-
-.text-orange {
-  color: #fd7e14 !important;
-}
-
-.border-orange {
-  border-color: #fd7e14 !important;
-}
-
-/* Animated pulse for SOS button */
+/* Glowing Alert Pulses */
 .pulse-danger {
   animation: pulse-red 2s infinite;
 }
 
 @keyframes pulse-red {
-  0% {
-    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 15px rgba(220, 53, 69, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-/* Login form customization */
+.pulse-primary {
+  animation: pulse-indigo 2.5s infinite;
+}
+
+@keyframes pulse-indigo {
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+/* Glassmorphic Login Layout */
 .login-container {
-  max-width: 400px;
-  margin: 0 auto;
+  max-width: 440px;
+  margin: 6% auto;
+  padding: 2.5rem;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 .login-logo {
-  width: 80px;
-  height: 80px;
-  background-color: var(--bs-danger);
-  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, var(--safety-red), var(--primary));
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 2rem;
+  margin: 0 auto 1.5rem;
   color: white;
-  font-size: 2rem;
+  font-size: 1.8rem;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
 }
 
-/* Loading spinner */
+/* Custom UI Loader */
 .loader {
-  width: 48px;
-  height: 48px;
-  border: 5px solid var(--bs-dark);
-  border-bottom-color: var(--bs-primary);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.05);
+  border-bottom-color: var(--primary);
   border-radius: 50%;
   display: inline-block;
   box-sizing: border-box;
@@ -62,92 +63,109 @@
 }
 
 @keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* Camera feed controls */
-.camera-controls {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  z-index: 10;
+/* Route Safety Planner Sidebar styles */
+.route-planner-sidebar {
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  padding: 1.25rem;
 }
 
-/* CCTV frames */
-.camera-frame {
-  position: relative;
-  border: 2px solid var(--bs-dark);
-  border-radius: 4px;
-  overflow: hidden;
+.route-option-card {
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.85rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.camera-frame:hover {
-  transform: scale(1.02);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.route-option-card:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.camera-frame .camera-overlay {
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.route-option-card.active {
+  border-color: var(--primary);
+  background: rgba(79, 70, 229, 0.08);
+  box-shadow: 0 4px 15px var(--primary-glow);
 }
 
-.camera-frame:hover .camera-overlay {
-  opacity: 1;
+/* Real-Time Audio wave panel */
+.voice-wave-modal {
+  background: rgba(10, 11, 15, 0.95);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
 }
 
-/* Detection boxes for video feeds */
-.detection-box {
+.voice-wave-active {
+  color: var(--safety-green);
+  text-shadow: 0 0 10px var(--safety-green-glow);
+  animation: pulse-text 1.5s infinite alternate;
+}
+
+@keyframes pulse-text {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+/* CCTV feed coordinates heatmap overlays */
+.heatmap-overlay-canvas {
   position: absolute;
-  border: 2px solid var(--bs-danger);
-  border-radius: 3px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Dynamic Alert Toaster Placement */
+#toaster-container {
+  position: fixed;
+  top: 80px;
+  right: 25px;
+  z-index: 1060;
+  width: 360px;
   pointer-events: none;
 }
 
-.detection-box .detection-label {
+#toaster-container .toast-message {
+  pointer-events: auto;
+}
+
+/* Landing Page Scroll Storyline Cards */
+.storyline-container {
+  position: relative;
+  margin: 3rem 0;
+  padding-left: 2rem;
+  border-left: 2px dashed var(--border-light);
+}
+
+.storyline-step {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.storyline-step::before {
+  content: attr(data-step);
   position: absolute;
-  top: -20px;
-  left: 0;
-  background-color: var(--bs-danger);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 0.75rem;
-}
-
-/* Alert flash animation */
-.alert-flash {
-  animation: flash 1.5s;
-}
-
-@keyframes flash {
-  0%, 50%, 100% {
-    opacity: 1;
-  }
-  25%, 75% {
-    opacity: 0.5;
-  }
-}
-
-/* Admin dashboard notifications counter */
-.notification-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  font-size: 0.7rem;
-  padding: 0.25em 0.6em;
-}
-
-/* Map zone polygons */
-.safety-tooltip {
-  background-color: rgba(33, 37, 41, 0.9);
-  border: 1px solid var(--bs-dark);
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  left: calc(-2rem - 13px);
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 0 0 4px var(--bg-main);
 }
