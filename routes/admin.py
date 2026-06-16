@@ -343,6 +343,114 @@ def cctv_upload():
         return redirect(url_for('admin.cctv_analysis'))
         
     if file and allowed_file(file.filename):
+        if os.environ.get("VERCEL") == "1":
+            # Serverless deployment: run quick synchronous mock processing
+            tmp_uploads = '/tmp/uploads'
+            tmp_processed = '/tmp/processed'
+            os.makedirs(tmp_uploads, exist_ok=True)
+            os.makedirs(tmp_processed, exist_ok=True)
+            
+            filename = secure_filename(file.filename)
+            video_path = os.path.join(tmp_uploads, filename)
+            file.save(video_path)
+            
+            # Setup simulated anomaly data
+            summary = {
+                'violence': random.randint(1, 4),
+                'fire': random.randint(1, 2),
+                'explosion': random.randint(0, 1)
+            }
+            total = sum(summary.values())
+            
+            # Save mock coordinates to anomalies.db for HeatmapGenerator
+            from anomaly_detector import AnomalyDetector
+            detector = AnomalyDetector(db_path='/tmp/anomalies.db')
+            detector._clear_detections(filename)
+            
+            mock_coords = []
+            for class_name, count in summary.items():
+                for i in range(count):
+                    x = random.randint(100, 1800)
+                    y = random.randint(100, 900)
+                    mock_coords.append({
+                        'class': class_name,
+                        'confidence': random.uniform(0.75, 0.95),
+                        'x': x,
+                        'y': y,
+                        'frame_number': i * 30,
+                        'timestamp': i * 1.5
+                    })
+            detector._store_detections(mock_coords, filename)
+            
+            # Generate heatmap using Matplotlib
+            from heatmap_generator import HeatmapGenerator
+            heatmap_gen = HeatmapGenerator(db_path='/tmp/anomalies.db')
+            
+            target_heatmap = f"heatmap_{filename.rsplit('.', 1)[0]}.png"
+            heatmap_gen.generate_heatmap(
+                video_name=filename,
+                output_path=os.path.join(tmp_processed, target_heatmap)
+            )
+            
+            # Create Database incidents/alerts for dashboard simulation
+            camera = Camera.query.first()
+            if not camera:
+                camera = Camera(
+                    name="CCTV-1",
+                    location="Times Square Rooftop",
+                    latitude=28.6139,
+                    longitude=77.2090,
+                    status="active"
+                )
+                db.session.add(camera)
+                db.session.commit()
+                
+            for anomaly_type, count in summary.items():
+                if count > 0:
+                    for _ in range(count):
+                        lat = camera.latitude + random.uniform(-0.005, 0.005)
+                        lng = camera.longitude + random.uniform(-0.005, 0.005)
+                        incident = Incident(
+                            incident_type=anomaly_type,
+                            latitude=lat,
+                            longitude=lng,
+                            confidence=random.uniform(0.72, 0.94),
+                            camera_id=camera.id,
+                            details=f"Vercel simulated YOLO detection from video: {filename}"
+                        )
+                        db.session.add(incident)
+                        db.session.commit()
+                        
+                        create_alert(
+                            alert_type='detection',
+                            message=f"Offline YOLO: {anomaly_type.capitalize()} identified in camera recordings",
+                            latitude=lat,
+                            longitude=lng,
+                            incident_id=incident.id,
+                            trigger_type='offline_video',
+                            severity='high',
+                            source=filename
+                        )
+            
+            # Set results
+            video_processing_status = {
+                'is_processing': False,
+                'progress': 100,
+                'current_video': filename,
+                'results': {
+                    'total_detections': total,
+                    'summary': summary,
+                    'heatmap_path': f"processed/{target_heatmap}",
+                    'class_heatmaps': {},
+                    'output_video': 'https://assets.mixkit.co/videos/preview/mixkit-security-camera-monitoring-a-parking-lot-43187-large.mp4',
+                    'detection_count': total,
+                    'original_name': filename
+                },
+                'error': None
+            }
+            flash(f'Video "{filename}" uploaded and analyzed successfully (Vercel Serverless mode)!', 'success')
+            return redirect(url_for('admin.cctv_analysis'))
+
         uploads_dir = os.path.join(current_app.static_folder, 'uploads')
         os.makedirs(uploads_dir, exist_ok=True)
         

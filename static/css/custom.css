@@ -1,171 +1,283 @@
-/* 
- * Raahi Safety Platform - Custom CSS Overrides and Layouts
- * Augments the base Bootstrap and style tokens
+/*
+ * Raahi 2.0 — custom.css
+ * Fine-tune overrides for Bootstrap 5 and any page-specific patches.
+ * Import order: styles.css → animations.css → custom.css
  */
 
-/* Glowing Alert Pulses */
-.pulse-danger {
-  animation: pulse-red 2s infinite;
+/* ─────────────────────────────────────────────────────────────────
+   BOOTSTRAP NORMALIZATION — Force dark-first base on all elements
+───────────────────────────────────────────────────────────────── */
+
+/* Remove Bootstrap's default card bg that fights our tokens */
+.card { --bs-card-bg: var(--surface-overlay); }
+
+/* Override Bootstrap blue link colors */
+a { color: var(--color-primary); }
+a:hover { color: var(--color-primary-light); }
+
+/* Links inside cards */
+.card a { color: inherit; }
+
+/* Bootstrap accordion */
+.accordion-button {
+  background: var(--surface-overlay) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: none !important;
 }
 
-@keyframes pulse-red {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
-  70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+.accordion-button::after {
+  filter: invert(1) !important;
 }
 
-.pulse-primary {
-  animation: pulse-indigo 2.5s infinite;
+.accordion-item {
+  background: var(--surface-overlay) !important;
+  border: 1px solid var(--surface-border) !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  margin-bottom: 0.5rem !important;
 }
 
-@keyframes pulse-indigo {
-  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5); }
-  70% { box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+.accordion-body {
+  color: var(--text-secondary) !important;
+  font-size: 0.875rem;
 }
 
-/* Glassmorphic Login Layout */
-.login-container {
-  max-width: 440px;
-  margin: 6% auto;
-  padding: 2.5rem;
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+/* Bootstrap dropdown */
+.dropdown-menu {
+  background: var(--surface-overlay) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--surface-border-hover) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 0.5rem !important;
 }
 
-.login-logo {
-  width: 70px;
-  height: 70px;
-  background: linear-gradient(135deg, var(--safety-red), var(--primary));
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  color: white;
-  font-size: 1.8rem;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+.dropdown-item {
+  color: var(--text-secondary) !important;
+  font-size: 0.875rem !important;
+  border-radius: var(--radius-md) !important;
+  padding: 0.5rem 0.875rem !important;
+  transition: all var(--duration-base) !important;
 }
 
-/* Custom UI Loader */
+.dropdown-item:hover, .dropdown-item:focus {
+  background: var(--surface-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+.dropdown-divider { border-color: var(--surface-border) !important; }
+
+/* Pagination */
+.page-link {
+  background: var(--surface-overlay) !important;
+  border-color: var(--surface-border) !important;
+  color: var(--text-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  transition: all var(--duration-base) !important;
+}
+
+.page-link:hover { background: var(--surface-hover) !important; color: var(--text-primary) !important; border-color: var(--surface-border-hover) !important; }
+.page-item.active .page-link { background: var(--color-primary) !important; border-color: var(--color-primary) !important; color: white !important; }
+.page-item.disabled .page-link { opacity: 0.4 !important; }
+
+/* Tabs */
+.nav-tabs {
+  border-bottom: 1px solid var(--surface-border) !important;
+  gap: 0.25rem;
+}
+
+.nav-tabs .nav-link {
+  color: var(--text-secondary) !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 0.6rem 1rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  transition: all var(--duration-base) !important;
+}
+
+.nav-tabs .nav-link:hover { color: var(--text-primary) !important; border-bottom-color: var(--surface-border-hover) !important; }
+.nav-tabs .nav-link.active { color: var(--color-primary-light) !important; border-bottom-color: var(--color-primary) !important; }
+
+/* Tab content */
+.tab-content { padding: var(--space-5) 0; }
+
+/* Progress bars (Bootstrap) */
+.progress {
+  background: var(--surface-hover) !important;
+  border-radius: var(--radius-full) !important;
+  height: 6px !important;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent)) !important;
+  border-radius: var(--radius-full) !important;
+  transition: width 1s var(--ease-spring) !important;
+}
+
+/* Tooltips */
+.tooltip-inner {
+  background: var(--surface-overlay) !important;
+  border: 1px solid var(--surface-border-hover) !important;
+  color: var(--text-primary) !important;
+  font-size: 0.78rem !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 6px 10px !important;
+}
+
+/* Close button */
+.btn-close {
+  filter: invert(1) grayscale(1) brightness(1) !important;
+  opacity: 0.6 !important;
+  transition: opacity var(--duration-base) !important;
+}
+
+.btn-close:hover { opacity: 1 !important; }
+
+[data-bs-theme="light"] .btn-close {
+  filter: invert(0) grayscale(1) brightness(0.3) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LEGACY COMPONENT ALIASES — backward compat
+   (match any old class names from prior templates)
+───────────────────────────────────────────────────────────────── */
+
+/* Old incident timeline items */
+.incident-timeline-item {
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  border-left: 3px solid var(--surface-border);
+  transition: all 0.2s;
+}
+
+.incident-timeline-item.safety-red     { border-left-color: var(--color-danger); }
+.incident-timeline-item.safety-orange  { border-left-color: var(--color-warning); }
+.incident-timeline-item.safety-yellow  { border-left-color: var(--color-caution); }
+.incident-timeline-item.safety-green   { border-left-color: var(--color-safe); }
+
+.incident-timeline-item:hover { border-color: var(--surface-border-hover); background: var(--surface-hover); }
+
+/* Old stats-card aliases */
+.stats-card {
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.stats-card.safety-red    { border-top: 3px solid var(--color-danger) !important; }
+.stats-card.safety-green  { border-top: 3px solid var(--color-safe) !important; }
+.stats-card.safety-orange { border-top: 3px solid var(--color-warning) !important; }
+.stats-card.safety-yellow { border-top: 3px solid var(--color-caution) !important; }
+
+/* Scan line for loading states */
 .loader {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.05);
-  border-bottom-color: var(--primary);
-  border-radius: 50%;
   display: inline-block;
-  box-sizing: border-box;
-  animation: rotation 1s linear infinite;
-}
-
-@keyframes rotation {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Route Safety Planner Sidebar styles */
-.route-planner-sidebar {
-  border-radius: 16px;
-  border: 1px solid var(--border-light);
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  padding: 1.25rem;
-}
-
-.route-option-card {
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 0.85rem;
-  margin-bottom: 0.75rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.route-option-card:hover {
-  border-color: var(--border-hover);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.route-option-card.active {
-  border-color: var(--primary);
-  background: rgba(79, 70, 229, 0.08);
-  box-shadow: 0 4px 15px var(--primary-glow);
-}
-
-/* Real-Time Audio wave panel */
-.voice-wave-modal {
-  background: rgba(10, 11, 15, 0.95);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-}
-
-.voice-wave-active {
-  color: var(--safety-green);
-  text-shadow: 0 0 10px var(--safety-green-glow);
-  animation: pulse-text 1.5s infinite alternate;
-}
-
-@keyframes pulse-text {
-  from { opacity: 0.7; }
-  to { opacity: 1; }
-}
-
-/* CCTV feed coordinates heatmap overlays */
-.heatmap-overlay-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 5;
-}
-
-/* Dynamic Alert Toaster Placement */
-#toaster-container {
-  position: fixed;
-  top: 80px;
-  right: 25px;
-  z-index: 1060;
-  width: 360px;
-  pointer-events: none;
-}
-
-#toaster-container .toast-message {
-  pointer-events: auto;
-}
-
-/* Landing Page Scroll Storyline Cards */
-.storyline-container {
-  position: relative;
-  margin: 3rem 0;
-  padding-left: 2rem;
-  border-left: 2px dashed var(--border-light);
-}
-
-.storyline-step {
-  position: relative;
-  margin-bottom: 2rem;
-}
-
-.storyline-step::before {
-  content: attr(data-step);
-  position: absolute;
-  left: calc(-2rem - 13px);
-  top: 2px;
-  width: 24px;
-  height: 24px;
-  background: var(--primary);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--surface-border-hover);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
-  display: flex;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Old glass-panel alias */
+.glass-panel {
+  background: var(--surface-overlay) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  border: 1px solid var(--surface-border) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+/* orange text (not in Bootstrap default) */
+.text-orange { color: var(--color-warning) !important; }
+.bg-orange-subtle { background: var(--color-warning-alpha) !important; }
+.border-orange-subtle { border-color: hsla(25, 95%, 53%, 0.2) !important; }
+
+/* ─────────────────────────────────────────────────────────────────
+   LIVE DETECTION PAGE
+───────────────────────────────────────────────────────────────── */
+
+/* Video canvas */
+#videoCanvas, canvas {
+  border-radius: var(--radius-lg);
+  background: #000;
+}
+
+/* Detection type badges */
+.detection-chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-weight: 700;
-  box-shadow: 0 0 0 4px var(--bg-main);
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  border: 1px solid transparent;
+  animation: popIn 0.3s var(--ease-bounce);
+}
+
+.chip-fire      { background: var(--color-danger-alpha); color: var(--color-danger); border-color: hsla(0,84%,60%,0.2); }
+.chip-smoke     { background: var(--color-caution-alpha); color: var(--color-caution); border-color: hsla(38,92%,50%,0.2); }
+.chip-fight     { background: var(--color-warning-alpha); color: var(--color-warning); border-color: hsla(25,95%,53%,0.2); }
+.chip-weapon    { background: var(--color-danger-alpha); color: var(--color-danger); border-color: hsla(0,84%,60%,0.2); }
+.chip-darkness  { background: hsla(240,10%,50%,0.1); color: #a0aec0; border-color: hsla(240,10%,50%,0.2); }
+.chip-clear     { background: var(--color-safe-alpha); color: var(--color-safe); border-color: hsla(158,64%,52%,0.2); }
+
+/* ─────────────────────────────────────────────────────────────────
+   SCROLL BAR (global)
+───────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar         { width: 6px; height: 6px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: var(--surface-border-hover); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--surface-active); }
+
+* { scrollbar-width: thin; scrollbar-color: var(--surface-border-hover) transparent; }
+
+/* ─────────────────────────────────────────────────────────────────
+   SECTION PADDING HELPER
+───────────────────────────────────────────────────────────────── */
+.section-py { padding-top: 5rem; padding-bottom: 5rem; }
+.section-py-sm { padding-top: 3rem; padding-bottom: 3rem; }
+
+/* ─────────────────────────────────────────────────────────────────
+   INPUT GROUP (BS override)
+───────────────────────────────────────────────────────────────── */
+.input-group-text {
+  background: var(--surface-raised) !important;
+  border-color: var(--surface-border) !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LIGHT THEME — fine-tune extra overrides
+───────────────────────────────────────────────────────────────── */
+[data-bs-theme="light"] .dropdown-menu { background: white !important; }
+[data-bs-theme="light"] .dropdown-item:hover { background: hsl(210,30%,96%) !important; }
+[data-bs-theme="light"] .incident-timeline-item { background: white !important; }
+[data-bs-theme="light"] .tooltip-inner { background: white !important; }
+[data-bs-theme="light"] .stats-card { background: white !important; }
+[data-bs-theme="light"] .glass-panel { background: hsla(0,0%,100%,0.8) !important; }
+
+[data-bs-theme="light"] #safetyMap,
+[data-bs-theme="light"] .leaflet-container { background: #e8edf2 !important; }
+
+/* ─────────────────────────────────────────────────────────────────
+   PRINT STYLES
+───────────────────────────────────────────────────────────────── */
+@media print {
+  .navbar, .site-footer, .btn-sos-nav, #scroll-progress, #page-preloader, #toaster-container { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .card { border: 1px solid #dee2e6 !important; background: white !important; }
 }

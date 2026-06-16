@@ -1,300 +1,496 @@
 {% extends 'base.html' %}
 
-{% block title %}Incident Reports | Raahi{% endblock %}
+{% block title %}Incident Feed — Raahi Safety Platform{% endblock %}
+
+{% block styles %}
+<style>
+/* ── Page Header ── */
+.feed-header {
+  margin-bottom: 2.5rem;
+}
+.feed-title {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Filter Form ── */
+.filter-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+}
+.filter-form {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+@media (max-width: 576px) {
+  .filter-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ── Main Layout ── */
+.table-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+.table-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--surface-overlay);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.table-card-header h5 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* ── Table Styling ── */
+.table {
+  margin-bottom: 0;
+  color: var(--text-primary);
+  border-color: var(--surface-border);
+}
+.table thead th {
+  background: var(--surface-overlay);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--surface-border);
+  padding: 1rem 1.5rem;
+}
+.table tbody td {
+  padding: 1rem 1.5rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--surface-border);
+  font-size: 0.875rem;
+}
+.table-hover tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+/* ── Badge Enhancements ── */
+.badge-incident {
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+.badge-incident.fire, .badge-incident.explosion {
+  background: var(--color-danger-alpha);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.badge-incident.fight, .badge-incident.weapon {
+  background: var(--color-caution-alpha);
+  color: var(--color-caution);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+.badge-incident.darkness {
+  background: var(--color-primary-alpha);
+  color: var(--color-primary-light);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+}
+.badge-incident.other {
+  background: rgba(156, 163, 175, 0.1);
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-border);
+}
+
+/* ── Confidence Indicator ── */
+.confidence-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.confidence-bar-outer {
+  width: 80px;
+  height: 6px;
+  background: var(--surface-overlay);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.confidence-bar-inner {
+  height: 100%;
+  border-radius: var(--radius-full);
+}
+
+/* ── Info Cards ── */
+.info-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.info-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.info-card-header h5 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+.info-card-body {
+  padding: 1.5rem;
+}
+
+/* ── Custom Pagination Override ── */
+.pagination {
+  gap: 4px;
+}
+.pagination .page-link {
+  border-radius: var(--radius-md);
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+.pagination .page-link:hover {
+  background: var(--surface-hover);
+  border-color: var(--surface-border-hover);
+}
+.pagination .page-item.active .page-link {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+.pagination .page-item.disabled .page-link {
+  background: var(--surface-base);
+  opacity: 0.5;
+  color: var(--text-tertiary);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2><i class="fas fa-exclamation-circle text-danger me-2"></i> Incident Reports</h2>
-            <p class="lead">View recent safety incidents detected by our AI system</p>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-dark shadow-sm">
-                <div class="card-body py-2">
-                    <form method="GET" action="{{ url_for('public.incidents') }}" class="d-flex">
-                        <select name="type" class="form-select me-2" aria-label="Filter by incident type">
-                            <option value="">All Incidents</option>
-                            {% for type in incident_types %}
-                                <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type|capitalize }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="container py-5">
+  <!-- ── Header Section ── -->
+  <div class="feed-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb" style="font-size: 0.8rem; margin-bottom: 0.5rem;">
+          <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Incidents</li>
+        </ol>
+      </nav>
+      <h1 class="feed-title">Public Incident Feed</h1>
+      <p class="text-secondary mb-0" style="font-size:0.925rem;">
+        Browse the timeline of safety detections triggered by city-wide cameras and validated by control teams.
+      </p>
     </div>
-    
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0">
-                        {% if selected_type %}
-                            {{ selected_type|capitalize }} Incidents
-                        {% else %}
-                            All Incidents
-                        {% endif %}
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th scope="col">Type</th>
-                                    <th scope="col">Location</th>
-                                    <th scope="col">Date & Time</th>
-                                    <th scope="col">Confidence</th>
-                                    <th scope="col">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if incidents.items %}
-                                    {% for incident in incidents.items %}
-                                        <tr>
-                                            <td>
-                                                <span class="badge rounded-pill 
-                                                    {% if incident.incident_type == 'fire' or incident.incident_type == 'explosion' %}
-                                                        bg-danger
-                                                    {% elif incident.incident_type == 'fight' or incident.incident_type == 'weapon' %}
-                                                        bg-warning
-                                                    {% elif incident.incident_type == 'darkness' %}
-                                                        bg-secondary
-                                                    {% else %}
-                                                        bg-primary
-                                                    {% endif %}
-                                                ">
-                                                    {{ incident.incident_type|capitalize }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {% if incident.camera %}
-                                                    {{ incident.camera.location }}
-                                                {% else %}
-                                                    {{ incident.latitude|round(4) }}, {{ incident.longitude|round(4) }}
-                                                {% endif %}
-                                            </td>
-                                            <td>{{ incident.timestamp.strftime('%d %b %Y, %H:%M') }}</td>
-                                            <td>
-                                                <div class="progress" style="height: 10px;">
-                                                    <div class="progress-bar 
-                                                        {% if incident.confidence < 0.5 %}
-                                                            bg-warning
-                                                        {% elif incident.confidence < 0.7 %}
-                                                            bg-info
-                                                        {% else %}
-                                                            bg-success
-                                                        {% endif %}"
-                                                        role="progressbar" 
-                                                        style="width: {{ (incident.confidence * 100)|int }}%"
-                                                        aria-valuenow="{{ (incident.confidence * 100)|int }}" 
-                                                        aria-valuemin="0" 
-                                                        aria-valuemax="100">
-                                                    </div>
-                                                </div>
-                                                <small>{{ (incident.confidence * 100)|int }}%</small>
-                                            </td>
-                                            <td>
-                                                {% if incident.is_verified %}
-                                                    <span class="badge bg-success">Verified</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">Unverified</span>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="5" class="text-center py-4">
-                                            No incidents found matching the filter criteria.
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            {% if incidents.total > 0 %}
-                                Showing {{ (incidents.page - 1) * incidents.per_page + 1 }} to
-                                {{ (incidents.page - 1) * incidents.per_page + incidents.items|length }} of
-                                {{ incidents.total }} incidents
+  </div>
+
+  <!-- ── Filter Card ── -->
+  <div class="filter-card">
+    <form method="GET" action="{{ url_for('public.incidents') }}" class="filter-form">
+      <div style="flex-grow: 1;">
+        <label class="form-label mb-1" for="typeFilter" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary);">Filter by Anomaly Type</label>
+        <select id="typeFilter" name="type" class="form-select">
+          <option value="">All Incident Types</option>
+          {% for type in incident_types %}
+            <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type|capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="align-self-end mt-3 mt-sm-0" style="min-width: 120px;">
+        <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2">
+          <i class="fas fa-filter" aria-hidden="true"></i> Apply Filter
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Core Content Grid ── -->
+  <div class="row g-4">
+    <!-- Left Column: Table of incidents -->
+    <div class="col-lg-8">
+      <div class="table-card">
+        <div class="table-card-header">
+          <h5>
+            {% if selected_type %}
+              {{ selected_type|capitalize }} Reports
+            {% else %}
+              All Active Detections
+            {% endif %}
+          </h5>
+          <span class="badge" style="background:var(--surface-base);border:1px solid var(--surface-border);font-family:var(--font-mono);font-size:0.75rem;">
+            Total: {{ incidents.total }}
+          </span>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Anomaly Type</th>
+                <th scope="col">Camera / Location</th>
+                <th scope="col">Timestamp</th>
+                <th scope="col">AI Confidence</th>
+                <th scope="col">Verification</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if incidents.items %}
+                {% for incident in incidents.items %}
+                  <tr>
+                    <td>
+                      {% set t = incident.incident_type|lower %}
+                      <span class="badge-incident {{ t if t in ['fire','explosion','fight','weapon','darkness'] else 'other' }}">
+                        {{ incident.incident_type|upper }}
+                      </span>
+                    </td>
+                    <td>
+                      <i class="fas fa-camera me-1 text-secondary" style="font-size: 0.75rem;" aria-hidden="true"></i>
+                      {% if incident.camera %}
+                        {{ incident.camera.location }}
+                      {% else %}
+                        GPS: {{ incident.latitude|round(4) }}, {{ incident.longitude|round(4) }}
+                      {% endif %}
+                    </td>
+                    <td class="text-secondary" style="font-size:0.8rem;">
+                      {{ incident.timestamp.strftime('%d %b %Y, %H:%M') }}
+                    </td>
+                    <td>
+                      <div class="confidence-wrapper">
+                        {% set conf_pct = (incident.confidence * 100)|int %}
+                        <div class="confidence-bar-outer" title="AI confidence level: {{ conf_pct }}%">
+                          <div class="confidence-bar-inner 
+                            {% if incident.confidence < 0.5 %}
+                              bg-warning
+                            {% elif incident.confidence < 0.75 %}
+                              bg-info
                             {% else %}
-                                No incidents found
-                            {% endif %}
+                              bg-success
+                            {% endif %}"
+                            style="width: {{ conf_pct }}%;">
+                          </div>
                         </div>
-                        
-                        <!-- Pagination -->
-                        {% if incidents.pages > 1 %}
-                            <nav aria-label="Incident pagination">
-                                <ul class="pagination mb-0">
-                                    {% if incidents.has_prev %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ url_for('public.incidents', page=incidents.prev_num, type=selected_type) }}" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                        </li>
-                                    {% else %}
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                    
-                                    {% for page_num in incidents.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                                        {% if page_num %}
-                                            {% if page_num == incidents.page %}
-                                                <li class="page-item active">
-                                                    <a class="page-link" href="#">{{ page_num }}</a>
-                                                </li>
-                                            {% else %}
-                                                <li class="page-item">
-                                                    <a class="page-link" href="{{ url_for('public.incidents', page=page_num, type=selected_type) }}">{{ page_num }}</a>
-                                                </li>
-                                            {% endif %}
-                                        {% else %}
-                                            <li class="page-item disabled">
-                                                <a class="page-link" href="#">...</a>
-                                            </li>
-                                        {% endif %}
-                                    {% endfor %}
-                                    
-                                    {% if incidents.has_next %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ url_for('public.incidents', page=incidents.next_num, type=selected_type) }}" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    {% else %}
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                </ul>
-                            </nav>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+                        <span style="font-family:var(--font-mono);font-size:0.75rem;font-weight:600;">{{ conf_pct }}%</span>
+                      </div>
+                    </td>
+                    <td>
+                      {% if incident.is_verified %}
+                        <span class="badge d-inline-flex align-items-center gap-1" style="background:var(--color-safe-alpha);color:var(--color-safe);border:1px solid rgba(16,185,129,0.2);font-size:0.65rem;font-weight:700;">
+                          <i class="fas fa-circle-check" aria-hidden="true"></i> Verified
+                        </span>
+                      {% else %}
+                        <span class="badge d-inline-flex align-items-center gap-1" style="background:rgba(156,163,175,0.1);color:var(--text-secondary);border:1px solid var(--surface-border);font-size:0.65rem;font-weight:700;">
+                          <i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Pending
+                        </span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-secondary">
+                    <i class="fas fa-box-open fa-2x mb-2" style="opacity: 0.5;" aria-hidden="true"></i>
+                    <p class="mb-0">No incidents matching filter parameters.</p>
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
         </div>
+
+        <!-- Pagination Bar -->
+        {% if incidents.pages > 1 %}
+          <div class="table-card-header" style="border-top:1px solid var(--surface-border);border-bottom:none;">
+            <div style="font-size:0.75rem;color:var(--text-secondary);">
+              Showing {{ (incidents.page - 1) * incidents.per_page + 1 }} -
+              {{ (incidents.page - 1) * incidents.per_page + incidents.items|length }} of
+              {{ incidents.total }} logs
+            </div>
+            
+            <nav aria-label="Incident page pagination">
+              <ul class="pagination mb-0">
+                {% if incidents.has_prev %}
+                  <li class="page-item">
+                    <a class="page-link" href="{{ url_for('public.incidents', page=incidents.prev_num, type=selected_type) }}" aria-label="Previous">
+                      <i class="fas fa-angle-left" aria-hidden="true"></i>
+                    </a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-left" aria-hidden="true"></i></span>
+                  </li>
+                {% endif %}
+                
+                {% for page_num in incidents.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                  {% if page_num %}
+                    {% if page_num == incidents.page %}
+                      <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                      </li>
+                    {% else %}
+                      <li class="page-item">
+                        <a class="page-link" href="{{ url_for('public.incidents', page=page_num, type=selected_type) }}">{{ page_num }}</a>
+                      </li>
+                    {% endif %}
+                  {% else %}
+                    <li class="page-item disabled">
+                      <span class="page-link">...</span>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+                
+                {% if incidents.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="{{ url_for('public.incidents', page=incidents.next_num, type=selected_type) }}" aria-label="Next">
+                      <i class="fas fa-angle-right" aria-hidden="true"></i>
+                    </a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-right" aria-hidden="true"></i></span>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+      </div>
     </div>
-    
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Incident Types</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="incidentTypeChart"></canvas>
-                </div>
-            </div>
+
+    <!-- Right Column: Chart & Explainer -->
+    <div class="col-lg-4">
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="fas fa-chart-pie" style="color:var(--color-primary-light);" aria-hidden="true"></i>
+          <h5>Anomaly Distribution</h5>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Understand Incident Reports</h5>
-                </div>
-                <div class="card-body">
-                    <p>The incidents shown on this page are detected by our AI system. Here's what you need to know:</p>
-                    
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <span class="badge bg-danger me-2">Fire/Explosion</span>
-                            High priority incidents requiring immediate attention
-                        </li>
-                        <li class="list-group-item">
-                            <span class="badge bg-warning me-2">Fight/Weapon</span>
-                            Potential criminal activities detected
-                        </li>
-                        <li class="list-group-item">
-                            <span class="badge bg-secondary me-2">Darkness</span>
-                            Poor visibility conditions that may pose safety risks
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Confidence Score:</strong> Indicates the AI's certainty about the detection
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Verified Status:</strong> Incidents reviewed and confirmed by administrators
-                        </li>
-                    </ul>
-                    
-                    <div class="alert alert-info mt-3">
-                        <small>This information is provided for awareness only. For emergencies, contact local authorities directly or use the SOS button.</small>
-                    </div>
-                </div>
-            </div>
+        <div class="info-card-body" style="background:var(--surface-overlay);">
+          <div style="position:relative;height:220px;">
+            <canvas id="incidentTypeChart"></canvas>
+          </div>
         </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-header">
+          <i class="fas fa-circle-question" style="color:var(--color-accent);" aria-hidden="true"></i>
+          <h5>Intelligence Feed FAQ</h5>
+        </div>
+        <div class="info-card-body" style="font-size:0.8rem;line-height:1.6;color:var(--text-secondary);">
+          <p class="mb-3">
+            This portal shows incident records analyzed from city camera networks. The AI system runs locally on camera edge feeds:
+          </p>
+          <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+            <li class="d-flex align-items-start gap-2">
+              <i class="fas fa-circle-exclamation text-danger mt-1" style="font-size:0.75rem;" aria-hidden="true"></i>
+              <span><strong>Fire/Explosion:</strong> High severity hazard anomalies flagged to local stations instantly.</span>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="fas fa-triangle-exclamation text-warning mt-1" style="font-size:0.75rem;" aria-hidden="true"></i>
+              <span><strong>Fight/Weapon:</strong> Direct violence detections alerting law enforcement.</span>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="fas fa-cloud-moon text-primary mt-1" style="font-size:0.75rem;" aria-hidden="true"></i>
+              <span><strong>Darkness:</strong> Lighting failures reported to public infrastructure.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get incident type data for chart
-        fetch('/api/incidents?limit=100')
-            .then(response => response.json())
-            .then(incidents => {
-                // Count incidents by type
-                const typeCounts = {};
-                incidents.forEach(incident => {
-                    typeCounts[incident.type] = (typeCounts[incident.type] || 0) + 1;
-                });
-                
-                // Prepare data for chart
-                const labels = Object.keys(typeCounts).map(type => type.charAt(0).toUpperCase() + type.slice(1));
-                const data = Object.values(typeCounts);
-                
-                // Set chart colors based on incident types
-                const colors = labels.map(label => {
-                    if (label.toLowerCase() === 'fire' || label.toLowerCase() === 'explosion') {
-                        return '#dc3545'; // danger
-                    } else if (label.toLowerCase() === 'fight' || label.toLowerCase() === 'weapon') {
-                        return '#ffc107'; // warning
-                    } else if (label.toLowerCase() === 'darkness') {
-                        return '#6c757d'; // secondary
-                    } else {
-                        return '#0d6efd'; // primary
-                    }
-                });
-                
-                // Create the chart
-                const ctx = document.getElementById('incidentTypeChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: colors,
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Incident Distribution by Type'
-                            }
-                        }
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching incident data for chart:', error);
-            });
-    });
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/api/incidents?limit=100')
+    .then(response => response.json())
+    .then(incidents => {
+      const counts = {};
+      incidents.forEach(inc => {
+        const t = inc.type ? inc.type.toLowerCase() : 'other';
+        counts[t] = (counts[t] || 0) + 1;
+      });
+
+      const labels = Object.keys(counts).map(t => t.toUpperCase());
+      const data = Object.values(counts);
+
+      // Color maps
+      const colors = {
+        fire: 'rgba(239, 68, 68, 0.8)',
+        explosion: 'rgba(239, 68, 68, 0.8)',
+        fight: 'rgba(245, 158, 11, 0.8)',
+        weapon: 'rgba(245, 158, 11, 0.8)',
+        darkness: 'rgba(79, 70, 229, 0.8)',
+        other: 'rgba(107, 114, 128, 0.8)'
+      };
+
+      const bgColors = labels.map(lbl => colors[lbl.toLowerCase()] || colors.other);
+      const borderColors = bgColors.map(c => c.replace('0.8', '1.0'));
+
+      const ctx = document.getElementById('incidentTypeChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: bgColors,
+            borderColor: borderColors,
+            borderWidth: 1.5,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: 'rgba(156, 163, 175, 0.9)',
+                font: {
+                  family: "'Plus Jakarta Sans', sans-serif",
+                  size: 11
+                },
+                padding: 12
+              }
+            }
+          },
+          cutout: '70%'
+        }
+      });
+    })
+    .catch(err => console.error('Error fetching chart dataset:', err));
+});
 </script>
 {% endblock %}

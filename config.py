@@ -7,7 +7,10 @@ class Config:
     SECRET_KEY = os.environ.get("SESSION_SECRET", "dev-secret-key")
     
     # Database configuration
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///raahi.db")
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "DATABASE_URL", 
+        "sqlite:////tmp/raahi.db" if os.environ.get("VERCEL") == "1" else "sqlite:///raahi.db"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_recycle": 300,

@@ -1,329 +1,660 @@
 {% extends 'base.html' %}
 
-{% block title %}Live Detection | Raahi Safety Platform{% endblock %}
+{% block title %}Live AI Anomaly Detection — Raahi Safety Platform{% endblock %}
+
+{% block styles %}
+<style>
+/* ── Page Hero/Header ── */
+.detection-header {
+  margin-bottom: 2rem;
+}
+.detection-title {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.status-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--color-danger-alpha);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--color-danger);
+}
+.status-badge-live i {
+  animation: pulse-red 2s infinite;
+}
+
+/* ── Feed Section ── */
+.feed-card {
+  position: relative;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--duration-base) var(--ease-smooth);
+}
+.feed-card:hover {
+  border-color: rgba(6, 182, 212, 0.2);
+}
+.feed-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.feed-viewport {
+  position: relative;
+  background: #040508;
+  min-height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.feed-viewport iframe {
+  width: 100%;
+  height: 450px;
+  border: none !important;
+}
+
+/* ── HUD Scanline Overlays ── */
+.viewport-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  border: 1px solid rgba(6, 182, 212, 0.1);
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+}
+.hud-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-accent);
+}
+.hud-corner.tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+.hud-corner.tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+.hud-corner.bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+.hud-corner.br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+.hud-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.8;
+}
+.hud-scan {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.3;
+  animation: scanning 4s linear infinite;
+}
+
+.placeholder-content {
+  text-align: center;
+  max-width: 380px;
+  padding: 2rem;
+  z-index: 5;
+}
+.placeholder-icon-wrap {
+  width: 80px;
+  height: 80px;
+  background: var(--color-primary-alpha);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: var(--color-primary-light);
+  font-size: 2rem;
+  box-shadow: 0 0 20px var(--color-primary-alpha);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+}
+
+/* ── Control Bar ── */
+.control-bar {
+  padding: 1.25rem 1.5rem;
+  background: var(--surface-overlay);
+  border-top: 1px solid var(--surface-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* ── Sidebar Panels ── */
+.side-panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.panel-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--surface-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.panel-header h5 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+.panel-body {
+  padding: 1.25rem;
+}
+
+/* ── Cluster Status Indicators ── */
+.cluster-item {
+  position: relative;
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+.cluster-item:hover {
+  transform: translateY(-2px);
+}
+.cluster-item.violence { border-left: 3px solid var(--color-caution); }
+.cluster-item.emergency { border-left: 3px solid var(--color-danger); }
+.cluster-item.visibility { border-left: 3px solid var(--color-primary); }
+
+.cluster-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.825rem;
+  margin-bottom: 0.35rem;
+}
+.cluster-description {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* ── Live Log ── */
+#current-detections {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+.detection-log-item {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  animation: slideIn 0.3s var(--ease-spring);
+}
+.detection-log-item.severity-critical { border-left: 3px solid var(--color-danger); }
+.detection-log-item.severity-high { border-left: 3px solid var(--color-warning); }
+.detection-log-item.severity-medium { border-left: 3px solid var(--color-caution); }
+.detection-log-item.severity-low { border-left: 3px solid var(--color-primary); }
+
+/* ── Voice Guardian Widget ── */
+.voice-widget-card {
+  text-align: center;
+  padding: 1.5rem;
+}
+.voice-status-ring {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: var(--surface-overlay);
+  border: 2px solid var(--surface-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-base) var(--ease-smooth);
+}
+.voice-status-ring.listening {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 20px var(--color-primary-alpha);
+  animation: pulse-ring 2s infinite;
+}
+.voice-status-ring.listening i {
+  color: var(--color-primary-light);
+  animation: pulse-mic 1s alternate infinite;
+}
+.voice-waveform-mini {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  height: 16px;
+  margin-top: 1rem;
+}
+.voice-waveform-mini span {
+  width: 2px;
+  height: 4px;
+  background: var(--color-primary-light);
+  border-radius: 2px;
+  transition: height 0.15s ease;
+}
+.voice-waveform-mini.active span {
+  animation: wave-mini 0.8s ease-in-out infinite alternate;
+}
+.voice-waveform-mini.active span:nth-child(2) { animation-delay: 0.15s; }
+.voice-waveform-mini.active span:nth-child(3) { animation-delay: 0.3s; }
+.voice-waveform-mini.active span:nth-child(4) { animation-delay: 0.45s; }
+.voice-waveform-mini.active span:nth-child(5) { animation-delay: 0.6s; }
+
+/* ── Animations ── */
+@keyframes scanning {
+  0% { top: 0; }
+  50% { top: 100%; }
+  100% { top: 0; }
+}
+@keyframes pulse-red {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+@keyframes pulse-mic {
+  0% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+@keyframes wave-mini {
+  0% { height: 4px; }
+  100% { height: 16px; }
+}
+@keyframes slideIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <nav class="navbar navbar-expand-lg navbar-dark bg-dark rounded">
-                <div class="container-fluid">
-                    <span class="navbar-brand">Live Detection</span>
-                    <div class="navbar-nav">
-                        <a class="nav-link" href="{{ url_for('public.map') }}">
-                            <i class="fas fa-map me-2"></i>Safety Map
-                        </a>
-                        <a class="nav-link active" href="{{ url_for('public.live_detection') }}">
-                            <i class="fas fa-video me-2"></i>Live Detection
-                        </a>
-                        {% if current_user.is_authenticated %}
-                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </nav>
+<div class="container py-5">
+  <!-- ── Header Section ── -->
+  <div class="detection-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb" style="font-size: 0.8rem; margin-bottom: 0.5rem;">
+          <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Live AI CCTV</li>
+        </ol>
+      </nav>
+      <h1 class="detection-title">Live AI Anomaly Monitor</h1>
+      <p class="text-secondary mb-0" style="font-size:0.925rem;">
+        Real-time feed ingestion with on-device AI classification for violent behaviour, fire hazard emergencies, and visibility hazards.
+      </p>
+    </div>
+    <div>
+      <span class="status-badge-live" id="detection-status">
+        <i class="fas fa-circle" aria-hidden="true"></i> Standby Mode
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- ── Left Column: CCTV Stream viewport ── -->
+    <div class="col-lg-8">
+      <div class="feed-card">
+        <!-- Feed Title Header -->
+        <div class="feed-header">
+          <div class="d-flex align-items-center gap-2">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent);" aria-hidden="true"></span>
+            <span style="font-family:var(--font-display);font-weight:700;font-size:0.875rem;" id="feedLabel">CCTV-04 NYC Times Square Rooftop</span>
+          </div>
+          <div class="d-flex gap-2">
+            <span class="badge" style="background:var(--surface-overlay);border:1px solid var(--surface-border);font-family:var(--font-mono);font-size:0.75rem;" id="fps-display">0 FPS</span>
+            <span class="badge" style="background:var(--surface-overlay);border:1px solid var(--surface-border);font-family:var(--font-mono);font-size:0.75rem;">Detections: <span id="detection-counter">0</span></span>
+          </div>
         </div>
+
+        <!-- Viewport Container -->
+        <div class="feed-viewport" id="video-container">
+          <div class="placeholder-content">
+            <div class="placeholder-icon-wrap">
+              <i class="fas fa-video-slash" aria-hidden="true"></i>
+            </div>
+            <h4 style="font-family:var(--font-display);font-weight:800;font-size:1.125rem;margin-bottom:0.5rem;">Live AI Stream Offline</h4>
+            <p style="font-size:0.825rem;color:var(--text-secondary);margin-bottom:1.5rem;">
+              Click 'Initialize AI Engine' below to establish direct connection to remote live cams.
+            </p>
+            <button class="btn btn-primary btn-sm" onclick="detectionSystem.start()">
+              <i class="fas fa-bolt me-1" aria-hidden="true"></i> Initialize AI Engine
+            </button>
+          </div>
+        </div>
+
+        <!-- HUD Frame -->
+        <div class="viewport-hud">
+          <div class="hud-corner tl" aria-hidden="true"></div>
+          <div class="hud-corner tr" aria-hidden="true"></div>
+          <div class="hud-corner bl" aria-hidden="true"></div>
+          <div class="hud-corner br" aria-hidden="true"></div>
+          <div class="hud-grid" aria-hidden="true"></div>
+          <div class="hud-scan" id="scanLine" style="display:none;" aria-hidden="true"></div>
+        </div>
+
+        <!-- Canvas for dynamic bounding boxes (rendered programmatically overlay) -->
+        <canvas id="detectionCanvas" class="position-absolute top-0 start-0 w-100 h-100" style="pointer-events: none; z-index: 5; display: none;"></canvas>
+
+        <!-- Controls Bar -->
+        <div class="control-bar">
+          <div class="d-flex gap-2">
+            <button class="btn btn-success btn-sm d-flex align-items-center gap-2" id="startBtn" onclick="detectionSystem.start()">
+              <i class="fas fa-play" aria-hidden="true"></i> Start AI Monitor
+            </button>
+            <button class="btn btn-danger btn-sm d-flex align-items-center gap-2" id="stopBtn" onclick="detectionSystem.stop()" disabled>
+              <i class="fas fa-stop" aria-hidden="true"></i> Stop Stream
+            </button>
+          </div>
+          <div>
+            <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" id="switchBtn" onclick="detectionSystem.switchFeed()" disabled>
+              <i class="fas fa-shuffle" aria-hidden="true"></i> Switch Feed
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-camera me-2"></i>🌍 Live EarthCam Feed - AI Anomaly Detection
-                        </h5>
-                        <div class="d-flex align-items-center">
-                            <span id="detection-status" class="me-3">
-                                <span class="badge bg-success">🔴 LIVE - 3 Anomaly Clusters</span>
-                            </span>
-                            <button type="button" class="btn btn-sm btn-success" id="startDetectionBtn" onclick="detectionSystem.start()">
-                                <i class="fas fa-play me-1"></i>Start Detection
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div id="video-container" class="position-relative" style="background: #000; min-height: 400px;">
-                        <!-- EarthCam feed will be loaded here -->
-                        <div class="d-flex align-items-center justify-content-center h-100">
-                            <div class="text-center text-light">
-                                <i class="fas fa-globe fa-3x mb-3"></i>
-                                <h5>Click "Start Detection" to connect to live EarthCam feeds</h5>
-                                <p>AI will monitor for: Violence • Emergency • Visibility anomalies</p>
-                            </div>
-                        </div>
-                    </div>
-                        <canvas id="detectionCanvas" class="position-absolute top-0 start-0 w-100" style="height: 400px; pointer-events: none;"></canvas>
-                        
-                        <!-- Detection Status Overlay -->
-                        <div class="position-absolute top-0 end-0 m-3">
-                            <span id="detectionStatus" class="badge bg-success fs-6">
-                                <i class="fas fa-circle me-1" style="animation: pulse 2s infinite;"></i>
-                                LIVE DETECTION ACTIVE
-                            </span>
-                        </div>
-                        
-                        <!-- Emergency Alert Overlay -->
-                        <div id="emergencyAlert" class="position-absolute top-50 start-50 translate-middle d-none">
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="min-width: 300px;">
-                                <h4 class="alert-heading">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>Emergency Detected!
-                                </h4>
-                                <p id="emergencyMessage" class="mb-0"></p>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <button id="startDetection" class="btn btn-success">
-                                <i class="fas fa-play me-1"></i>Start Detection
-                            </button>
-                            <button id="stopDetection" class="btn btn-danger" disabled>
-                                <i class="fas fa-stop me-1"></i>Stop Detection
-                            </button>
-                        </div>
-                        <div>
-                            <span class="badge bg-info">FPS: <span id="fpsCounter">0</span></span>
-                            <span class="badge bg-warning">Detections: <span id="detectionCounter">0</span></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- ── Right Column: AI Analytics & Alerts ── -->
+    <div class="col-lg-4">
+      <!-- Cluster panel -->
+      <div class="side-panel">
+        <div class="panel-header">
+          <i class="fas fa-brain" style="color:var(--color-primary-light);" aria-hidden="true"></i>
+          <h5>Target Anomaly Clusters</h5>
         </div>
-        
-        <div class="col-md-4">
-            <!-- Voice Recognition Panel -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0">
-                        <i class="fas fa-microphone me-2"></i>Voice Emergency Detection
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="text-center">
-                        <div id="voiceStatus" class="mb-3">
-                            <i class="fas fa-microphone-slash fa-3x text-muted"></i>
-                            <p class="mt-2">Voice detection inactive</p>
-                        </div>
-                        <button id="toggleVoice" class="btn btn-primary">
-                            <i class="fas fa-microphone me-1"></i>Start Listening
-                        </button>
-                    </div>
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            Listens for: "help", "save me", "emergency", "fire", "police"
-                        </small>
-                    </div>
-                </div>
+        <div class="panel-body">
+          <div class="cluster-item violence">
+            <div class="cluster-label">
+              <span>⚠️ VIOLENCE</span>
+              <span class="badge" style="background:var(--color-caution-alpha);color:var(--color-caution);font-size:0.65rem;">ACTIVE</span>
             </div>
-
-            <!-- Three Anomaly Clusters Monitor -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0">
-                        <i class="fas fa-brain me-2"></i>AI Anomaly Clusters
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <div class="alert alert-warning mb-2">
-                                <strong>⚠️ Violence</strong><br>
-                                <small>Assault, abuse, fights, attacks</small>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="alert alert-danger mb-2">
-                                <strong>🚨 Emergency</strong><br>
-                                <small>Fire, explosion, smoke, flames</small>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="alert alert-info mb-2">
-                                <strong>🌑 Visibility</strong><br>
-                                <small>Darkness, poor lighting, no visibility</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">Total Detections:</small>
-                            <span id="detection-counter" class="badge bg-primary">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-1">
-                            <small class="text-muted">Processing Rate:</small>
-                            <span id="fps-display" class="badge bg-secondary">0 FPS</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="cluster-description">Detects street fights, physical aggression, assaults, and weapon handling patterns.</div>
+          </div>
+          
+          <div class="cluster-item emergency">
+            <div class="cluster-label">
+              <span>🚨 HAZARD & FIRE</span>
+              <span class="badge" style="background:var(--color-danger-alpha);color:var(--color-danger);font-size:0.65rem;">ACTIVE</span>
             </div>
-
-            <!-- Live Detection Results -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>Live Detections
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div id="current-detections" style="max-height: 250px; overflow-y: auto;">
-                        <div class="p-3 text-center text-muted">
-                            <i class="fas fa-search fa-2x mb-2"></i>
-                            <p>No anomalies detected yet</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="cluster-description">Recognizes smoke columns, active flames, explosions, and vehicle crashes.</div>
+          </div>
+          
+          <div class="cluster-item visibility">
+            <div class="cluster-label">
+              <span>🌑 VISIBILITY HAZARD</span>
+              <span class="badge" style="background:var(--color-primary-alpha);color:var(--color-primary-light);font-size:0.65rem;">ACTIVE</span>
             </div>
-
-            <!-- Recent Detection History -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history me-2"></i>Detection History
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <ul id="recent-detections-list" class="list-group list-group-flush" style="max-height: 200px; overflow-y: auto;">
-                        <li class="list-group-item text-center text-muted">
-                            <i class="fas fa-clock"></i> No history yet
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            <div class="cluster-description">Monitors for complete blackouts, critical low-light conditions, and smoke blind spots.</div>
+          </div>
         </div>
+      </div>
+
+      <!-- Real-time Alerts Feed -->
+      <div class="side-panel">
+        <div class="panel-header">
+          <i class="fas fa-tower-broadcast" style="color:var(--color-danger);" aria-hidden="true"></i>
+          <h5>AI Feed Detections</h5>
+        </div>
+        <div class="panel-body p-0">
+          <div id="current-detections">
+            <div class="p-4 text-center text-secondary">
+              <i class="fas fa-radar fa-2x mb-2" style="opacity: 0.5;" aria-hidden="true"></i>
+              <p class="mb-0" style="font-size:0.8rem;">No anomalies detected. System in standby mode.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Voice guardian widget -->
+      <div class="side-panel">
+        <div class="panel-header">
+          <i class="fas fa-microphone" style="color:var(--color-accent);" aria-hidden="true"></i>
+          <h5>Voice Emergency Shield</h5>
+        </div>
+        <div class="panel-body voice-widget-card">
+          <div class="voice-status-ring" id="voiceRing">
+            <i class="fas fa-microphone fa-2x" aria-hidden="true"></i>
+          </div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:0.9rem;" id="voiceStatusText">Voice Guardian Standby</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem;" id="voiceStatusDesc">
+            Listens for 'help', 'save me', or 'emergency'.
+          </div>
+          
+          <div class="voice-waveform-mini" id="voiceWave" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+
+          <button class="btn btn-outline-primary btn-sm w-100 mt-4" id="voiceToggleBtn" onclick="toggleLocalVoiceGuardian()">
+            <i class="fas fa-play me-1" aria-hidden="true"></i> Enable Voice Shield
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- SOS Modal -->
-<div class="modal fade" id="sosModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Emergency SOS
-                </h5>
-            </div>
-            <div class="modal-body">
-                <p>Emergency detected through voice recognition!</p>
-                <p>Your location is being shared with emergency services.</p>
-                <div class="mb-3">
-                    <label for="sosMessage" class="form-label">Additional Message (Optional):</label>
-                    <textarea id="sosMessage" class="form-control" rows="3" placeholder="Describe the emergency..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmSOS">
-                    <i class="fas fa-phone me-1"></i>Send SOS Alert
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Container for alerts popped up by detection -->
+<div id="detection-alerts" style="position: fixed; top: 80px; right: 20px; z-index: var(--z-toast); max-width: 400px;"></div>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/enhanced-detection.js') }}"></script>
-
-<!-- Alert container for detection messages -->
-<div id="detection-alerts" style="position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 400px;"></div>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize enhanced detection system for three anomaly clusters
-        console.log('🚀 Initializing Raahi Enhanced Detection System');
+  let localVoiceActive = false;
+  let recognitionInstance = null;
+
+  // Sync state between controls and EnhancedDetectionSystem
+  document.addEventListener('DOMContentLoaded', () => {
+    // Override the display/messaging to hook custom UI elements
+    if (window.detectionSystem) {
+      const origStart = window.detectionSystem.start;
+      const origStop = window.detectionSystem.stop;
+      const origSwitch = window.detectionSystem.switchFeed;
+
+      window.detectionSystem.start = async function() {
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('startBtn').innerHTML = '<span class="r-spinner me-2" style="width:14px;height:14px;border-width:2.5px;"></span> Initializing...';
         
-        // Detection system is auto-initialized via enhanced-detection.js
-        // The system will monitor for: Violence, Emergency, Visibility anomalies
+        await origStart.call(window.detectionSystem);
         
-        // SOS button functionality
-        document.getElementById('confirmSOS').addEventListener('click', function() {
-            const message = document.getElementById('sosMessage').value || 'Emergency detected via AI system';
-            
-            fetch('/api/sos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: message,
-                    latitude: 40.7589, // Default NYC coordinates
-                    longitude: -73.9851
-                })
-            }).then(response => {
-                if (response.ok) {
-                    alert('✅ SOS Alert sent successfully!');
-                    bootstrap.Modal.getInstance(document.getElementById('sosModal')).hide();
-                } else {
-                    alert('❌ Failed to send SOS alert');
-                }
-            });
-        });
-    });
-    
-    function showEmergencyAlert(message) {
-        const alertElement = document.getElementById('emergencyAlert');
-        document.getElementById('emergencyMessage').textContent = message;
-        alertElement.classList.remove('d-none');
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('startBtn').innerHTML = '<i class="fas fa-circle-notch fa-spin me-1"></i> Engine Active';
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('switchBtn').disabled = false;
+        document.getElementById('scanLine').style.display = 'block';
         
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            alertElement.classList.add('d-none');
-        }, 5000);
-    }
-    
-    function showSOSModal() {
-        const modal = new bootstrap.Modal(document.getElementById('sosModal'));
-        modal.show();
-    }
-    
-    function sendSOSAlert() {
-        const message = document.getElementById('sosMessage').value;
+        // Update label
+        updateFeedLabel();
+      };
+
+      window.detectionSystem.stop = function() {
+        origStop.call(window.detectionSystem);
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('startBtn').innerHTML = '<i class="fas fa-play me-1"></i> Start AI Monitor';
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('switchBtn').disabled = true;
+        document.getElementById('scanLine').style.display = 'none';
         
-        // Get user location and send SOS
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                fetch('/api/sos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: message || 'Voice emergency detected',
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    })
-                }).then(() => {
-                    bootstrap.Modal.getInstance(document.getElementById('sosModal')).hide();
-                    alert('SOS alert sent successfully!');
-                });
-            });
+        // Reset container to offline state
+        const feedContainer = document.getElementById('video-container');
+        feedContainer.innerHTML = `
+          <div class="placeholder-content">
+            <div class="placeholder-icon-wrap">
+              <i class="fas fa-video-slash"></i>
+            </div>
+            <h4 style="font-family:var(--font-display);font-weight:800;font-size:1.125rem;margin-bottom:0.5rem;">Live AI Stream Offline</h4>
+            <p style="font-size:0.825rem;color:var(--text-secondary);margin-bottom:1.5rem;">
+              Click 'Initialize AI Engine' below to establish direct connection to remote live cams.
+            </p>
+            <button class="btn btn-primary btn-sm" onclick="detectionSystem.start()">
+              <i class="fas fa-bolt me-1"></i> Initialize AI Engine
+            </button>
+          </div>
+        `;
+      };
+
+      window.detectionSystem.switchFeed = function() {
+        origSwitch.call(window.detectionSystem);
+        updateFeedLabel();
+      };
+
+      // Custom logger hook to keep it looking beautiful
+      window.detectionSystem.displayDetection = function(detection) {
+        const detectionArea = document.getElementById('current-detections');
+        if (!detectionArea) return;
+
+        // Clear placeholder if present
+        if (detectionArea.querySelector('.fa-radar')) {
+          detectionArea.innerHTML = '';
         }
+
+        const sevClass = detection.severity || 'medium';
+        const label = window.detectionSystem.formatCluster(detection.cluster);
+
+        const el = document.createElement('div');
+        el.className = `detection-log-item severity-${sevClass}`;
+        el.innerHTML = `
+          <div>
+            <div style="font-weight:700;">${label} &mdash; ${detection.anomaly_type}</div>
+            <div style="font-size:0.7rem;color:var(--text-secondary);">Confidence: ${Math.round(detection.confidence * 100)}%</div>
+          </div>
+          <span class="badge" style="background:var(--color-${sevClass === 'critical' ? 'danger' : sevClass === 'high' ? 'warning' : 'caution'}-alpha);color:var(--color-${sevClass === 'critical' ? 'danger' : sevClass === 'high' ? 'warning' : 'caution'});font-size:0.65rem;">
+            ${sevClass.toUpperCase()}
+          </span>
+        `;
+
+        detectionArea.insertBefore(el, detectionArea.firstChild);
+
+        // Cap size
+        if (detectionArea.children.length > 5) {
+          detectionArea.removeChild(detectionArea.lastChild);
+        }
+      };
     }
+  });
+
+  function updateFeedLabel() {
+    const labels = [
+      'CCTV-01 NYC Times Square Rooftop [AI-ACTIVE]',
+      'CCTV-02 Statue of Liberty Cam [AI-ACTIVE]',
+      'CCTV-03 Hollywood Boulevard [AI-ACTIVE]',
+      'CCTV-04 Miami Beach Walkway [AI-ACTIVE]'
+    ];
+    const index = window.detectionSystem.currentFeedIndex;
+    document.getElementById('feedLabel').textContent = labels[index] || 'CCTV Stream [AI-ACTIVE]';
+  }
+
+  // Local voice guardian setup
+  function toggleLocalVoiceGuardian() {
+    const btn = document.getElementById('voiceToggleBtn');
+    const ring = document.getElementById('voiceRing');
+    const text = document.getElementById('voiceStatusText');
+    const desc = document.getElementById('voiceStatusDesc');
+    const wave = document.getElementById('voiceWave');
+
+    if (!localVoiceActive) {
+      // Start listening
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Speech recognition is not supported on this browser.');
+        return;
+      }
+
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionInstance = new SpeechRec();
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+
+      recognitionInstance.onstart = () => {
+        localVoiceActive = true;
+        btn.innerHTML = '<i class="fas fa-pause me-1"></i> Disarm Voice Shield';
+        btn.className = 'btn btn-outline-danger btn-sm w-100 mt-4';
+        ring.classList.add('listening');
+        text.textContent = 'Voice Shield Active';
+        desc.textContent = 'Monitoring audio for emergency vocal calls...';
+        wave.classList.add('active');
+      };
+
+      recognitionInstance.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+        console.log('Voice Shield heard:', transcript);
+
+        const keywords = ['help', 'save me', 'emergency'];
+        if (keywords.some(kw => transcript.includes(kw))) {
+          // Trigger SOS
+          if (window.showSOSModal) {
+            window.showSOSModal();
+          } else {
+            const modalEl = document.getElementById('sosModal');
+            if (modalEl) {
+              const modal = new bootstrap.Modal(modalEl);
+              modal.show();
+            } else {
+              alert('🚨 EMERGENCY DETECTION TRIGGERED!');
+            }
+          }
+        }
+      };
+
+      recognitionInstance.onerror = (e) => {
+        console.error('Speech recognition error:', e);
+      };
+
+      recognitionInstance.onend = () => {
+        if (localVoiceActive) {
+          recognitionInstance.start();
+        }
+      };
+
+      recognitionInstance.start();
+    } else {
+      // Stop listening
+      localVoiceActive = false;
+      if (recognitionInstance) {
+        recognitionInstance.stop();
+      }
+      btn.innerHTML = '<i class="fas fa-play me-1"></i> Enable Voice Shield';
+      btn.className = 'btn btn-outline-primary btn-sm w-100 mt-4';
+      ring.classList.remove('listening');
+      text.textContent = 'Voice Guardian Standby';
+      desc.textContent = "Listens for 'help', 'save me', or 'emergency'.";
+      wave.classList.remove('active');
+    }
+  }
 </script>
-
-<style>
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-.detection-box {
-    position: absolute;
-    border: 2px solid #ff0000;
-    background: rgba(255, 0, 0, 0.1);
-    color: white;
-    font-size: 12px;
-    padding: 2px 5px;
-}
-
-.detection-box.fire { border-color: #ff4444; background: rgba(255, 68, 68, 0.2); }
-.detection-box.weapon { border-color: #ff8800; background: rgba(255, 136, 0, 0.2); }
-.detection-box.person { border-color: #4488ff; background: rgba(68, 136, 255, 0.2); }
-.detection-box.smoke { border-color: #888888; background: rgba(136, 136, 136, 0.2); }
-</style>
 {% endblock %}

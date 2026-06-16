@@ -1,475 +1,844 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        })();
-    </script>
-    <!-- CSRF Token for Secure AJAX requests -->
-    <meta name="csrf-token" content="{{ csrf_token() if csrf_token else '' }}">
-    <title>{% block title %}Raahi - AI-Powered Public Safety Platform{% endblock %}</title>
-    
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Leaflet for Maps -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    
-    <!-- Custom CSS Design System -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
-    
-    {% block styles %}{% endblock %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Raahi — AI-powered public safety platform. Real-time CCTV monitoring, safety zone mapping, and emergency response for smarter cities.">
+  <meta name="theme-color" content="#07080b">
+
+  <!-- Theme: apply before render to prevent FOUC -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('raahi-theme') || 'dark';
+      document.documentElement.setAttribute('data-bs-theme', t);
+      document.documentElement.style.colorScheme = t;
+    })();
+  </script>
+
+  <!-- CSRF Token -->
+  <meta name="csrf-token" content="{{ csrf_token() if csrf_token else '' }}">
+
+  <title>{% block title %}Raahi — AI-Powered Public Safety Platform{% endblock %}</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Raahi — AI-Powered Public Safety Platform">
+  <meta property="og:description" content="Real-time AI safety monitoring for smarter, safer cities.">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts: preconnect for speed -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Bootstrap Core -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Leaflet Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Raahi Design System -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+
+  {% block styles %}{% endblock %}
 </head>
+
 <body>
-    <!-- Real-time Toast Notifications Wrapper -->
-    <div id="toaster-container"></div>
+  <!-- ── Scroll Progress Bar -->
+  <div id="scroll-progress" aria-hidden="true"></div>
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('public.index') }}">
-                <i class="fas fa-shield-alt text-primary me-2"></i>
-                <span>RAAHI</span>
+  <!-- ── Page Preloader -->
+  <div id="page-preloader" aria-hidden="true">
+    <div class="preloader-logo">
+      <i class="fas fa-shield-halved"></i>
+    </div>
+    <div class="waveform" style="width:80px;">
+      <div class="waveform-bar" style="height:8px;"></div>
+      <div class="waveform-bar" style="height:14px;"></div>
+      <div class="waveform-bar" style="height:22px;"></div>
+      <div class="waveform-bar" style="height:16px;"></div>
+      <div class="waveform-bar" style="height:10px;"></div>
+    </div>
+  </div>
+
+  <!-- ── Toast Container -->
+  <div id="toaster-container" role="status" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       NAVIGATION
+  ───────────────────────────────────────────────────────────────── -->
+  <nav class="navbar navbar-expand-lg" role="navigation" aria-label="Main navigation">
+    <div class="container">
+
+      <!-- Brand -->
+      <a class="navbar-brand" href="{{ url_for('public.index') }}" aria-label="Raahi home">
+        <div class="brand-icon" aria-hidden="true">
+          <i class="fas fa-shield-halved"></i>
+        </div>
+        RAAHI
+      </a>
+
+      <!-- Mobile toggler -->
+      <button class="navbar-toggler border-0 ms-auto me-3" type="button"
+              data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"
+              style="color: var(--text-secondary);">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Nav Links -->
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto gap-1" style="padding: 0.5rem 0;">
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'public.index' %}active{% endif %}"
+               href="{{ url_for('public.index') }}" id="nav-home">
+              Home
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'public.index' %}active{% endif %}" href="{{ url_for('public.index') }}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'public.map' %}active{% endif %}" href="{{ url_for('public.map') }}">Safety Map</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'public.incidents' %}active{% endif %}" href="{{ url_for('public.incidents') }}">Incidents</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'public.live_detection' %}active{% endif %}" href="{{ url_for('public.live_detection') }}">Live CCTV</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'public.about' %}active{% endif %}" href="{{ url_for('public.about') }}">About</a>
-                    </li>
-                </ul>
-                
-                <ul class="navbar-nav align-items-center">
-                    <!-- SpeechRecognition Indicator -->
-                    <li class="nav-item me-3">
-                        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" id="voiceStatusBtn" data-bs-toggle="modal" data-bs-target="#voiceSettingsModal">
-                            <span class="spinner-grow spinner-grow-sm text-success" role="status" id="voicePulse" style="display:none;"></span>
-                            <i class="fas fa-microphone" id="voiceIcon"></i>
-                            <span id="voiceStatusLabel">Voice Off</span>
-                        </button>
-                    </li>
-                    
-                    <!-- Theme Mode Toggle -->
-                    <li class="nav-item me-3">
-                        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" id="themeToggleBtn" aria-label="Toggle theme mode" style="width: 34px; height: 34px; border-radius: 50%; padding: 0;">
-                            <i class="fas fa-sun" id="themeToggleIcon" style="transition: transform 0.4s ease;"></i>
-                        </button>
-                    </li>
-                    
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin.') %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
-                                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.logout') }}">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">
-                                <i class="fas fa-sign-in-alt"></i> Login
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-                
-                <!-- Emergency SOS Trigger Button -->
-                <button class="btn btn-danger ms-3" id="sosBtn" data-bs-toggle="modal" data-bs-target="#sosModal">
-                    <i class="fas fa-exclamation-triangle me-1"></i> SOS
-                </button>
-            </div>
-        </div>
-    </nav>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'public.map' %}active{% endif %}"
+               href="{{ url_for('public.map') }}" id="nav-map">
+              Safety Map
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'public.incidents' %}active{% endif %}"
+               href="{{ url_for('public.incidents') }}" id="nav-incidents">
+              Incidents
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'public.live_detection' %}active{% endif %}"
+               href="{{ url_for('public.live_detection') }}" id="nav-live">
+              <span class="badge badge-danger badge-live me-1" style="font-size:0.6rem;vertical-align:middle;">LIVE</span>
+              CCTV
+            </a>
+          </li>
+        </ul>
 
-    <!-- Flash Messages -->
-    <div class="container mt-3">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else 'warning' if category == 'warning' else 'success' }} alert-dismissible fade show card border-0" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
+        <!-- Right Side Controls -->
+        <div class="d-flex align-items-center gap-2" style="padding: 0.5rem 0;">
+
+          <!-- Voice Guardian Button -->
+          <button class="btn-voice btn d-flex align-items-center gap-2"
+                  id="voiceStatusBtn"
+                  data-bs-toggle="modal" data-bs-target="#voiceModal"
+                  aria-label="Voice Guardian status"
+                  title="AI Voice Guardian">
+            <div class="waveform inactive" id="navWaveform" style="height:18px;gap:2px;width:28px;" aria-hidden="true">
+              <div class="waveform-bar" style="height:4px;width:2px;"></div>
+              <div class="waveform-bar" style="height:4px;width:2px;"></div>
+              <div class="waveform-bar" style="height:4px;width:2px;"></div>
+              <div class="waveform-bar" style="height:4px;width:2px;"></div>
+              <div class="waveform-bar" style="height:4px;width:2px;"></div>
+            </div>
+            <span id="voiceStatusLabel" class="hide-mobile" style="font-size:0.75rem;">Guardian</span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button class="btn-theme btn" id="themeToggleBtn" aria-label="Toggle dark/light mode">
+            <i class="fas fa-sun" id="themeIcon" aria-hidden="true"></i>
+          </button>
+
+          {% if current_user.is_authenticated %}
+            <!-- Dashboard link -->
+            <a class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
+               href="{{ url_for('admin.dashboard') }}"
+               id="nav-dashboard"
+               style="border-radius: var(--radius-full);">
+              <i class="fas fa-gauge-high" aria-hidden="true"></i>
+              <span class="hide-mobile">Dashboard</span>
+            </a>
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('auth.logout') }}" id="nav-logout"
+               style="border-radius: var(--radius-full);">
+              <i class="fas fa-arrow-right-from-bracket" aria-hidden="true"></i>
+            </a>
+          {% else %}
+            <a class="btn btn-outline-secondary btn-sm"
+               href="{{ url_for('auth.login') }}"
+               id="nav-login"
+               style="border-radius: var(--radius-full);">
+              <i class="fas fa-lock me-1" aria-hidden="true"></i>
+              <span>Admin</span>
+            </a>
+          {% endif %}
+
+          <!-- SOS Button -->
+          <button class="btn btn-sos-nav d-flex align-items-center gap-1"
+                  id="sosBtn"
+                  data-bs-toggle="modal" data-bs-target="#sosModal"
+                  aria-label="Trigger emergency SOS alert">
+            <i class="fas fa-circle-exclamation" aria-hidden="true"></i>
+            SOS
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       FLASH MESSAGES
+  ───────────────────────────────────────────────────────────────── -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'error' else 'warning' if category == 'warning' else 'success' }} alert-dismissible fade show d-flex align-items-center gap-3" role="alert">
+            <i class="fas fa-{{ 'circle-xmark' if category == 'error' else 'triangle-exclamation' if category == 'warning' else 'circle-check' }}" aria-hidden="true"></i>
+            <span>{{ message }}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- ─────────────────────────────────────────────────────────────
+       MAIN CONTENT
+  ───────────────────────────────────────────────────────────────── -->
+  <main id="main-content" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       FOOTER
+  ───────────────────────────────────────────────────────────────── -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="row g-5">
+        <!-- Brand Column -->
+        <div class="col-lg-4">
+          <div class="footer-brand d-flex align-items-center gap-2 mb-3">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--color-primary),var(--color-accent));border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;">
+              <i class="fas fa-shield-halved" aria-hidden="true"></i>
+            </div>
+            RAAHI
+          </div>
+          <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.7;max-width:280px;">
+            AI-driven urban incident monitoring and route safety planning. Making cities smarter and citizens safer.
+          </p>
+          <div class="footer-social d-flex gap-2 mt-4">
+            <a href="#" aria-label="Follow Raahi on Twitter" title="Twitter">
+              <i class="fab fa-x-twitter" aria-hidden="true"></i>
+            </a>
+            <a href="#" aria-label="Raahi on GitHub" title="GitHub">
+              <i class="fab fa-github" aria-hidden="true"></i>
+            </a>
+            <a href="#" aria-label="Raahi on LinkedIn" title="LinkedIn">
+              <i class="fab fa-linkedin-in" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Platform Links -->
+        <div class="col-sm-6 col-lg-2">
+          <h6 style="font-family:var(--font-display);font-weight:700;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:1rem;">
+            Platform
+          </h6>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a class="footer-link" href="{{ url_for('public.map') }}">Safety Map</a></li>
+            <li><a class="footer-link" href="{{ url_for('public.incidents') }}">Incidents</a></li>
+            <li><a class="footer-link" href="{{ url_for('public.live_detection') }}">Live CCTV</a></li>
+            <li><a class="footer-link" href="#">Route Planner</a></li>
+          </ul>
+        </div>
+
+        <!-- Admin Links -->
+        <div class="col-sm-6 col-lg-2">
+          <h6 style="font-family:var(--font-display);font-weight:700;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:1rem;">
+            Operations
+          </h6>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            {% if current_user.is_authenticated %}
+              <li><a class="footer-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+              <li><a class="footer-link" href="{{ url_for('admin.alerts') }}">Alert Center</a></li>
+              <li><a class="footer-link" href="{{ url_for('admin.incidents') }}">Incident Manager</a></li>
+            {% else %}
+              <li><a class="footer-link" href="{{ url_for('auth.login') }}">Admin Login</a></li>
             {% endif %}
-        {% endwith %}
-    </div>
-
-    <!-- Main Content -->
-    <main class="py-4">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer mt-auto py-4 bg-dark text-white border-top border-secondary-subtle">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <h5>Raahi Public Safety Platform</h5>
-                    <p class="text-muted small mb-0">AI-driven urban incident monitoring and safety planning. Built by Team Garun.</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
-                    <p class="text-muted small mb-2">&copy; 2026 Team Garun. All rights reserved.</p>
-                    <div class="d-flex justify-content-center justify-content-md-end gap-3 fs-5">
-                        <a href="#" class="text-muted"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-facebook"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-github"></i></a>
-                    </div>
-                </div>
-            </div>
+            <li><a class="footer-link" href="#">API Docs</a></li>
+          </ul>
         </div>
-    </footer>
 
-    <!-- SOS Modal -->
-    <div class="modal fade" id="sosModal" tabindex="-1" aria-labelledby="sosModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content card border-0 shadow">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="sosModalLabel"><i class="fas fa-exclamation-triangle me-2"></i> Emergency SOS Trigger</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="alert alert-danger mb-3">
-                        <i class="fas fa-info-circle me-2"></i> <strong>WARNING:</strong> This action will notify administrative personnel immediately and tag your location coordinates as an active danger zone.
-                    </p>
-                    
-                    <form id="sosForm">
-                        <div class="mb-3">
-                            <label for="sosMessage" class="form-label">Describe your emergency context (Optional)</label>
-                            <textarea class="form-control" id="sosMessage" rows="3" placeholder="Describe the danger (e.g. fire, road incident, assault)..."></textarea>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="locationConsent" checked required>
-                                <label class="form-check-label text-muted" for="locationConsent">
-                                    I consent to share my current GPS coordinates with emergency personnel.
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div id="locationStatus" class="alert alert-secondary py-2 small mb-0">
-                            Detecting location coordinates...
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger px-4" id="sendSosBtn" disabled>
-                        Confirm SOS Alert
-                    </button>
-                </div>
+        <!-- System Status -->
+        <div class="col-lg-4">
+          <h6 style="font-family:var(--font-display);font-weight:700;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:1rem;">
+            System Status
+          </h6>
+          <div class="d-flex flex-column gap-2">
+            <div class="d-flex align-items-center justify-content-between" style="font-size:0.8rem;">
+              <span style="color:var(--text-secondary);">AI Detection Engine</span>
+              <span class="badge badge-safe badge-live">Operational</span>
             </div>
-        </div>
-    </div>
-
-    <!-- Voice Protection Settings Modal -->
-    <div class="modal fade" id="voiceSettingsModal" tabindex="-1" aria-labelledby="voiceSettingsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content card border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="voiceSettingsModalLabel"><i class="fas fa-microphone me-2"></i> AI Voice Protection</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4 text-center">
-                    <div class="mb-4">
-                        <h6 class="mb-3">Audio Protection Status</h6>
-                        <div class="waveform-bars py-3 border border-secondary border-dashed rounded bg-black mb-3">
-                            <div class="waveform-bar" style="height: 10px;"></div>
-                            <div class="waveform-bar" style="height: 15px;"></div>
-                            <div class="waveform-bar" style="height: 25px;"></div>
-                            <div class="waveform-bar" style="height: 40px;"></div>
-                            <div class="waveform-bar" style="height: 20px;"></div>
-                            <div class="waveform-bar" style="height: 15px;"></div>
-                            <div class="waveform-bar" style="height: 10px;"></div>
-                        </div>
-                        <p class="small text-muted" id="voiceDetails">Speech Recognition listens locally in the browser for: <strong>"help me", "save me"</strong></p>
-                    </div>
-                    
-                    <button class="btn btn-lg btn-success w-100" id="btnToggleVoice">
-                        <i class="fas fa-play me-2"></i> Enable Voice Guardian
-                    </button>
-                </div>
+            <div class="d-flex align-items-center justify-content-between" style="font-size:0.8rem;">
+              <span style="color:var(--text-secondary);">Safety Map API</span>
+              <span class="badge badge-safe badge-live">Operational</span>
             </div>
+            <div class="d-flex align-items-center justify-content-between" style="font-size:0.8rem;">
+              <span style="color:var(--text-secondary);">SOS Alert System</span>
+              <span class="badge badge-safe badge-live">Operational</span>
+            </div>
+            <div class="d-flex align-items-center justify-content-between" style="font-size:0.8rem;">
+              <span style="color:var(--text-secondary);">Voice Guardian</span>
+              <span class="badge badge-safe badge-live">Operational</span>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Footer Bottom -->
+      <hr class="footer-divider">
+      <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+        <p style="font-size:0.78rem;color:var(--text-tertiary);margin:0;">
+          &copy; 2026 Team Garun &mdash; Raahi Public Safety Platform. All rights reserved.
+        </p>
+        <div class="d-flex gap-4">
+          <a class="footer-link" href="#" style="font-size:0.78rem;">Privacy Policy</a>
+          <a class="footer-link" href="#" style="font-size:0.78rem;">Terms of Service</a>
+          <a class="footer-link" href="#" style="font-size:0.78rem;">Accessibility</a>
+        </div>
+      </div>
     </div>
+  </footer>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- SOS Coordinate Scripts -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let userLocation = null;
-            const locationStatus = document.getElementById('locationStatus');
-            const sendSosBtn = document.getElementById('sendSosBtn');
-            
-            // Trigger GPS location fetching when modal is opened
-            document.getElementById('sosBtn').addEventListener('click', function() {
-                getUserLocation();
-            });
-            
-            function getUserLocation() {
-                if (navigator.geolocation) {
-                    locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Acquiring GPS coordinates...';
-                    locationStatus.className = 'alert alert-info py-2 small';
-                    sendSosBtn.disabled = true;
-                    
-                    navigator.geolocation.getCurrentPosition(
-                        function(position) {
-                            userLocation = {
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude
-                            };
-                            locationStatus.innerHTML = `<i class="fas fa-check-circle text-success me-2"></i>Location locked: ${userLocation.latitude.toFixed(5)}, ${userLocation.longitude.toFixed(5)}`;
-                            locationStatus.className = 'alert alert-success py-2 small';
-                            sendSosBtn.disabled = false;
-                        },
-                        function(error) {
-                            console.error('GPS error:', error);
-                            locationStatus.innerHTML = `<i class="fas fa-times-circle text-danger me-2"></i>Geolocation failed: ${error.message}`;
-                            locationStatus.className = 'alert alert-danger py-2 small';
-                            // Allow submission with manual/camera reference as fallback
-                            userLocation = { latitude: 28.6139, longitude: 77.2090 };
-                            sendSosBtn.disabled = false;
-                        },
-                        { timeout: 8000, enableHighAccuracy: true }
-                    );
-                } else {
-                    locationStatus.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i>Browser does not support Geolocation';
-                    locationStatus.className = 'alert alert-danger py-2 small';
-                }
-            }
-            
-            document.getElementById('sendSosBtn').addEventListener('click', function() {
-                if (!userLocation) return;
-                
-                const message = document.getElementById('sosMessage').value || 'Emergency SOS triggered manually';
-                
-                fetch('/api/sos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        latitude: userLocation.latitude,
-                        longitude: userLocation.longitude,
-                        message: message
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Show custom alert toast
-                        showGlobalToast('🚨 SOS ALERT FIRED', 'Emergency alert has been broadcast. Help is on the way!', 'danger');
-                        bootstrap.Modal.getInstance(document.getElementById('sosModal')).hide();
-                    } else {
-                        alert('SOS transmission failed: ' + data.message);
-                    }
-                })
-                .catch(err => {
-                    console.error('SOS Error:', err);
-                    alert('SOS network request failed.');
-                });
-            });
-        });
+  <!-- ═══════════════════════════════════════════════════════════
+       MODALS
+  ═══════════════════════════════════════════════════════════════ -->
 
-        // Global Toast notification trigger
-        function showGlobalToast(title, text, type = 'primary') {
-            const container = document.getElementById('toaster-container');
-            if (!container) return;
-            
-            const toast = document.createElement('div');
-            toast.className = `notification-toast toast-message alert alert-${type} d-flex align-items-center justify-content-between p-3 mb-2`;
-            toast.style.pointerEvents = 'auto';
-            toast.innerHTML = `
-                <div>
-                    <strong>${title}</strong>
-                    <div class="small mt-1 text-white">${text}</div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" onclick="this.parentElement.remove()"></button>
-            `;
-            container.appendChild(toast);
-            
-            // Auto remove after 6 seconds
-            setTimeout(() => {
-                toast.style.transition = 'all 0.5s ease';
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(-20px)';
-                setTimeout(() => toast.remove(), 500);
-            }, 6000);
+  <!-- SOS Modal -->
+  <div class="modal fade" id="sosModal" tabindex="-1" aria-labelledby="sosModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="border-color: var(--color-danger) !important;">
+        <!-- Animated danger header -->
+        <div class="modal-header" style="background: linear-gradient(135deg, #450a0a, #7f1d1d); border-bottom-color: var(--color-danger) !important;">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:40px;height:40px;background:var(--color-danger);border-radius:50%;display:flex;align-items:center;justify-content:center;" class="animate-heartbeat">
+              <i class="fas fa-exclamation" style="color:white;font-size:1.1rem;" aria-hidden="true"></i>
+            </div>
+            <div>
+              <h5 class="modal-title mb-0" id="sosModalLabel" style="color:white;">Emergency SOS Alert</h5>
+              <p style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin:0;">This will alert emergency personnel immediately</p>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Warning notice -->
+          <div class="d-flex align-items-start gap-3 p-3 mb-4 rounded-3" style="background:var(--color-danger-alpha);border:1px solid hsla(0,84%,60%,0.25);">
+            <i class="fas fa-triangle-exclamation" style="color:var(--color-danger);margin-top:2px;flex-shrink:0;" aria-hidden="true"></i>
+            <p style="margin:0;font-size:0.82rem;color:var(--text-secondary);">
+              <strong style="color:var(--text-primary);">Warning:</strong> Triggering SOS will immediately notify all administrative personnel and mark your current GPS location as an active emergency zone.
+            </p>
+          </div>
+
+          <form id="sosForm" novalidate>
+            <!-- Message -->
+            <div class="mb-4">
+              <label class="form-label" for="sosMessage">Emergency Description <span style="font-weight:400;text-transform:none;color:var(--text-tertiary);">(optional)</span></label>
+              <textarea class="form-control" id="sosMessage" rows="3"
+                        placeholder="Describe the situation — fire, assault, medical emergency..."></textarea>
+            </div>
+
+            <!-- Consent -->
+            <div class="mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="locationConsent" checked required>
+                <label class="form-check-label" for="locationConsent">
+                  I consent to sharing my GPS coordinates with emergency services
+                </label>
+              </div>
+            </div>
+
+            <!-- GPS Status -->
+            <div id="locationStatus" class="d-flex align-items-center gap-2 p-3 rounded-2"
+                 style="background:var(--surface-hover);border:1px solid var(--surface-border);font-size:0.8rem;">
+              <div class="r-spinner" id="gpsSpinner" style="display:none;"></div>
+              <i class="fas fa-location-crosshairs" id="gpsIcon" style="color:var(--text-tertiary);" aria-hidden="true"></i>
+              <span id="gpsStatusText" style="color:var(--text-secondary);">Waiting to detect location...</span>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger d-flex align-items-center gap-2" id="sendSosBtn" disabled>
+            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+            Confirm SOS Alert
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice Guardian Modal -->
+  <div class="modal fade" id="voiceModal" tabindex="-1" aria-labelledby="voiceModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background:linear-gradient(135deg,hsla(243,75%,20%,0.8),hsla(191,97%,15%,0.8));border-bottom-color:var(--surface-border);">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--color-primary),var(--color-accent));border-radius:50%;display:flex;align-items:center;justify-content:center;">
+              <i class="fas fa-microphone" style="color:white;" aria-hidden="true"></i>
+            </div>
+            <div>
+              <h5 class="modal-title mb-0" id="voiceModalLabel">AI Voice Guardian</h5>
+              <p style="font-size:0.72rem;color:var(--text-tertiary);margin:0;">Continuous keyword detection for your safety</p>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body text-center py-5">
+          <!-- Waveform visualization -->
+          <div id="voiceWaveformContainer" class="waveform inactive mx-auto mb-4" style="width:160px;height:48px;" aria-hidden="true">
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+          </div>
+
+          <h4 id="voiceGuardianStatus" style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem;">Voice Guardian Inactive</h4>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:var(--space-6);max-width:320px;margin-inline:auto;">
+            Continuously listens for emergency keywords:<br>
+            <strong style="color:var(--text-primary);">"help me" · "save me" · "emergency"</strong>
+          </p>
+
+          <button class="btn btn-primary btn-lg w-100" id="btnToggleVoice" style="max-width:280px;">
+            <i class="fas fa-play me-2" aria-hidden="true"></i>
+            Enable Voice Guardian
+          </button>
+
+          <p class="mt-3" style="font-size:0.75rem;color:var(--text-tertiary);">
+            <i class="fas fa-lock me-1" aria-hidden="true"></i>
+            Processing is local — no audio is ever transmitted
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- ── CORE APP BOOTSTRAP ── -->
+  <script>
+  // ═══════════════════════════════════════════════════════════════
+  //   RAAHI 2.0 — Core Application Shell
+  // ═══════════════════════════════════════════════════════════════
+
+  const Raahi = (function() {
+    'use strict';
+
+    // ── Event Bus ──────────────────────────────────────────────
+    const events = {};
+    const bus = {
+      on:   (e, fn) => { (events[e] = events[e]||[]).push(fn); },
+      off:  (e, fn) => { events[e] = (events[e]||[]).filter(f => f !== fn); },
+      emit: (e, d)  => { (events[e]||[]).forEach(fn => fn(d)); }
+    };
+
+    // ── Theme Manager ──────────────────────────────────────────
+    const theme = {
+      current: () => document.documentElement.getAttribute('data-bs-theme') || 'dark',
+
+      set(t) {
+        document.documentElement.setAttribute('data-bs-theme', t);
+        document.documentElement.style.colorScheme = t;
+        localStorage.setItem('raahi-theme', t);
+        const icon = document.getElementById('themeIcon');
+        if (icon) {
+          icon.className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+          icon.style.transform = 'rotate(360deg)';
+          setTimeout(() => icon.style.transform = '', 400);
         }
-    </script>
+        bus.emit('theme:changed', { theme: t });
+      },
 
-    <!-- SpeechRecognition System Core integration -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let recognition = null;
-            let isVoiceActive = false;
-            let userCoords = null;
-            
-            const voiceStatusBtn = document.getElementById('voiceStatusBtn');
-            const voicePulse = document.getElementById('voicePulse');
-            const voiceIcon = document.getElementById('voiceIcon');
-            const voiceStatusLabel = document.getElementById('voiceStatusLabel');
-            const btnToggleVoice = document.getElementById('btnToggleVoice');
-            const voiceDetails = document.getElementById('voiceDetails');
-            
-            // Pre-fetch location coordinates for speech trigger safety
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    userCoords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-                });
+      toggle() { this.set(this.current() === 'dark' ? 'light' : 'dark'); },
+
+      init() {
+        const saved = localStorage.getItem('raahi-theme') || 'dark';
+        this.set(saved);
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.addEventListener('click', () => this.toggle());
+      }
+    };
+
+    // ── Toast System ────────────────────────────────────────────
+    const toast = {
+      icons: { success: 'fa-circle-check', danger: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' },
+
+      show(title, text, type = 'info', duration = 5000) {
+        const container = document.getElementById('toaster-container');
+        if (!container) return;
+
+        const colors = {
+          success: 'var(--color-safe)',
+          danger: 'var(--color-danger)',
+          warning: 'var(--color-caution)',
+          info: 'var(--color-primary)'
+        };
+        const color = colors[type] || 'var(--color-primary)';
+
+        const el = document.createElement('div');
+        el.className = `r-toast toast-${type}`;
+        el.setAttribute('role', 'alert');
+        el.innerHTML = `
+          <div class="toast-icon" aria-hidden="true"><i class="fas ${this.icons[type] || this.icons.info}"></i></div>
+          <div class="toast-body">
+            <div class="toast-title">${title}</div>
+            ${text ? `<div class="toast-text">${text}</div>` : ''}
+          </div>
+          <button class="toast-close" aria-label="Dismiss notification">×</button>
+          <div class="toast-progress" style="animation-duration:${duration}ms;color:${color};"></div>
+        `;
+
+        const close = () => {
+          el.classList.add('toast-exit');
+          setTimeout(() => el.remove(), 380);
+        };
+
+        el.querySelector('.toast-close').addEventListener('click', close);
+        setTimeout(close, duration);
+        container.appendChild(el);
+      },
+
+      success: (t, m) => toast.show(t, m, 'success'),
+      danger:  (t, m) => toast.show(t, m, 'danger'),
+      warning: (t, m) => toast.show(t, m, 'warning'),
+      info:    (t, m) => toast.show(t, m, 'info'),
+    };
+
+    // ── Scroll Progress ─────────────────────────────────────────
+    const scrollProgress = {
+      init() {
+        const bar = document.getElementById('scroll-progress');
+        if (!bar) return;
+        const update = () => {
+          const scrollTop = window.scrollY;
+          const docH = document.documentElement.scrollHeight - window.innerHeight;
+          bar.style.width = docH > 0 ? `${(scrollTop / docH) * 100}%` : '0%';
+        };
+        window.addEventListener('scroll', update, { passive: true });
+      }
+    };
+
+    // ── Scroll Reveal ───────────────────────────────────────────
+    const scrollReveal = {
+      init() {
+        const els = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+        if (!els.length) return;
+        const io = new IntersectionObserver(entries => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.classList.add('revealed');
+              io.unobserve(e.target);
             }
-            
-            function initSpeech() {
-                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                    btnToggleVoice.disabled = true;
-                    btnToggleVoice.textContent = 'Voice recognition not supported';
-                    return;
-                }
-                
-                const SpeechReq = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechReq();
-                recognition.continuous = true;
-                recognition.interimResults = false;
-                recognition.lang = 'en-US';
-                
-                recognition.onresult = function(event) {
-                    const text = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-                    console.log('🎤 Voice input heard:', text);
-                    
-                    if (text.includes('help me') || text.includes('save me') || text.includes('emergency')) {
-                        triggerVoiceSOS(text);
-                    }
-                };
-                
-                recognition.onerror = function(event) {
-                    console.log('Speech recognition error:', event.error);
-                };
-                
-                recognition.onend = function() {
-                    if (isVoiceActive) {
-                        recognition.start(); // Restart if ended
-                    }
-                };
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        els.forEach(el => io.observe(el));
+      }
+    };
+
+    // ── Animated Counters ───────────────────────────────────────
+    const counters = {
+      ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; },
+
+      animate(el) {
+        const target = parseFloat(el.dataset.target || el.textContent.replace(/[^0-9.]/g, ''));
+        const suffix = el.dataset.suffix || '';
+        const prefix = el.dataset.prefix || '';
+        const decimals = el.dataset.decimals ? parseInt(el.dataset.decimals) : 0;
+        const duration = parseInt(el.dataset.duration || '1800');
+        const start = performance.now();
+
+        const update = (now) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const value = target * this.ease(progress);
+          el.textContent = prefix + (decimals ? value.toFixed(decimals) : Math.floor(value).toLocaleString()) + suffix;
+          if (progress < 1) requestAnimationFrame(update);
+        };
+
+        requestAnimationFrame(update);
+      },
+
+      init() {
+        const els = document.querySelectorAll('[data-counter]');
+        if (!els.length) return;
+        const io = new IntersectionObserver(entries => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              this.animate(e.target);
+              io.unobserve(e.target);
             }
-            
-            function triggerVoiceSOS(phrase) {
-                const payload = {
-                    keyword: phrase,
-                    latitude: userCoords ? userCoords.latitude : 28.6139,
-                    longitude: userCoords ? userCoords.longitude : 77.2090,
-                    timestamp: new Date().toISOString()
-                };
-                
-                fetch('/api/emergency-log', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    showGlobalToast('🚨 VOICE SOS TRIGGERED', `Heard emergency phrase: "${phrase}". Database alert and safety zones updated.`, 'danger');
-                })
-                .catch(err => console.error(err));
-            }
-            
-            btnToggleVoice.addEventListener('click', function() {
-                if (!recognition) initSpeech();
-                
-                if (isVoiceActive) {
-                    // Turn Off
-                    isVoiceActive = false;
-                    recognition.stop();
-                    voicePulse.style.display = 'none';
-                    voiceIcon.className = 'fas fa-microphone';
-                    voiceStatusLabel.textContent = 'Voice Off';
-                    btnToggleVoice.className = 'btn btn-lg btn-success w-100';
-                    btnToggleVoice.innerHTML = '<i class="fas fa-play me-2"></i> Enable Voice Guardian';
-                    showGlobalToast('Voice protection disabled', 'Voice trigger surveillance has been stopped.', 'warning');
-                } else {
-                    // Turn On
-                    isVoiceActive = true;
-                    recognition.start();
-                    voicePulse.style.display = 'inline-block';
-                    voiceIcon.className = 'fas fa-microphone-alt text-success';
-                    voiceStatusLabel.textContent = 'Listening';
-                    btnToggleVoice.className = 'btn btn-lg btn-danger w-100';
-                    btnToggleVoice.innerHTML = '<i class="fas fa-stop me-2"></i> Disable Voice Guardian';
-                    showGlobalToast('Voice protection active', 'Surveillance active. Screaming "help me" will trigger SOS.', 'success');
-                }
-                bootstrap.Modal.getInstance(document.getElementById('voiceSettingsModal')).hide();
-            });
+          });
+        }, { threshold: 0.5 });
+        els.forEach(el => io.observe(el));
+      }
+    };
+
+    // ── Preloader ───────────────────────────────────────────────
+    const preloader = {
+      init() {
+        const el = document.getElementById('page-preloader');
+        if (!el) return;
+        const hide = () => {
+          el.classList.add('loaded');
+          setTimeout(() => el.remove(), 600);
+        };
+        if (document.readyState === 'complete') {
+          setTimeout(hide, 300);
+        } else {
+          window.addEventListener('load', () => setTimeout(hide, 300));
+        }
+      }
+    };
+
+    // ── SOS System ──────────────────────────────────────────────
+    const sos = {
+      userLocation: null,
+
+      getLocation() {
+        const statusEl   = document.getElementById('gpsStatusText');
+        const iconEl     = document.getElementById('gpsIcon');
+        const spinnerEl  = document.getElementById('gpsSpinner');
+        const sendBtn    = document.getElementById('sendSosBtn');
+
+        if (!statusEl) return;
+
+        if (!navigator.geolocation) {
+          statusEl.textContent = 'Geolocation not supported by your browser';
+          iconEl.className = 'fas fa-circle-xmark';
+          iconEl.style.color = 'var(--color-danger)';
+          sendBtn.disabled = false;
+          this.userLocation = { latitude: 28.6139, longitude: 77.2090 };
+          return;
+        }
+
+        statusEl.textContent = 'Acquiring GPS coordinates...';
+        iconEl.style.display = 'none';
+        spinnerEl.style.display = 'block';
+        sendBtn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            this.userLocation = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+            spinnerEl.style.display = 'none';
+            iconEl.style.display = 'block';
+            iconEl.className = 'fas fa-location-dot';
+            iconEl.style.color = 'var(--color-safe)';
+            statusEl.textContent = `Location acquired: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+            sendBtn.disabled = false;
+          },
+          (err) => {
+            spinnerEl.style.display = 'none';
+            iconEl.style.display = 'block';
+            iconEl.className = 'fas fa-location-crosshairs';
+            iconEl.style.color = 'var(--color-caution)';
+            statusEl.textContent = `Using default location (GPS error: ${err.message})`;
+            this.userLocation = { latitude: 28.6139, longitude: 77.2090 };
+            sendBtn.disabled = false;
+          },
+          { timeout: 8000, enableHighAccuracy: true }
+        );
+      },
+
+      send() {
+        if (!this.userLocation) return;
+        const msg = document.getElementById('sosMessage')?.value || 'Emergency SOS triggered';
+        const btn = document.getElementById('sendSosBtn');
+        const origHTML = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="r-spinner" style="border-top-color:white;border-color:rgba(255,255,255,0.3);"></span> Sending...';
+
+        fetch('/api/sos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            latitude: this.userLocation.latitude,
+            longitude: this.userLocation.longitude,
+            message: msg
+          })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('sosModal'))?.hide();
+            toast.danger('🚨 SOS Alert Dispatched', 'Emergency services have been notified. Help is on the way.');
+          } else {
+            toast.warning('SOS Failed', data.message || 'Please try again or call emergency services directly.');
+            btn.disabled = false;
+            btn.innerHTML = origHTML;
+          }
+        })
+        .catch(() => {
+          toast.warning('Connection Error', 'Unable to reach servers. Please call emergency services directly.');
+          btn.disabled = false;
+          btn.innerHTML = origHTML;
         });
-    </script>
-        
-    <!-- Theme Toggler and Map Sync Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const themeToggleBtn = document.getElementById('themeToggleBtn');
-            const themeToggleIcon = document.getElementById('themeToggleIcon');
-            
-            function updateToggleIcon(theme) {
-                if (theme === 'light') {
-                    themeToggleIcon.className = 'fas fa-moon';
-                    themeToggleIcon.style.transform = 'rotate(180deg)';
-                } else {
-                    themeToggleIcon.className = 'fas fa-sun';
-                    themeToggleIcon.style.transform = 'rotate(0deg)';
-                }
-            }
-            
-            // Initial state based on current theme
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'dark';
-            updateToggleIcon(currentTheme);
-            
-            themeToggleBtn.addEventListener('click', function() {
-                const activeTheme = document.documentElement.getAttribute('data-bs-theme');
-                const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-bs-theme', nextTheme);
-                localStorage.setItem('theme', nextTheme);
-                updateToggleIcon(nextTheme);
-                
-                // Dispatch custom event to notify other components (e.g. Leaflet map)
-                const event = new CustomEvent('themeChanged', { detail: { theme: nextTheme } });
-                document.dispatchEvent(event);
-                
-                showGlobalToast(
-                    'Theme Switcher', 
-                    `Interface switched to ${nextTheme === 'dark' ? 'Dark Obsidian' : 'Light Slate'} mode.`, 
-                    'info'
-                );
-            });
+      },
+
+      init() {
+        const sosBtnNav = document.getElementById('sosBtn');
+        const sendBtn   = document.getElementById('sendSosBtn');
+
+        if (sosBtnNav) {
+          sosBtnNav.addEventListener('click', () => this.getLocation());
+        }
+
+        if (sendBtn) {
+          sendBtn.addEventListener('click', () => this.send());
+        }
+      }
+    };
+
+    // ── Voice Guardian ──────────────────────────────────────────
+    const voiceGuardian = {
+      recognition: null,
+      active: false,
+      userCoords: null,
+
+      getCoords() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(p => {
+            this.userCoords = { latitude: p.coords.latitude, longitude: p.coords.longitude };
+          });
+        }
+      },
+
+      init() {
+        this.getCoords();
+
+        const toggleBtn  = document.getElementById('btnToggleVoice');
+        const statusLbl  = document.getElementById('voiceGuardianStatus');
+        const waveformNav = document.getElementById('navWaveform');
+        const waveformModal = document.getElementById('voiceWaveformContainer');
+
+        if (!toggleBtn) return;
+
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+          toggleBtn.textContent = 'Voice Recognition Not Supported';
+          toggleBtn.disabled = true;
+          return;
+        }
+
+        toggleBtn.addEventListener('click', () => {
+          if (!this.recognition) this._initRecognition();
+
+          if (this.active) {
+            this._stop();
+            toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i> Enable Voice Guardian';
+            toggleBtn.className = 'btn btn-primary btn-lg w-100';
+            statusLbl && (statusLbl.textContent = 'Voice Guardian Inactive');
+            waveformNav?.classList.add('inactive');
+            waveformModal?.classList.add('inactive');
+            // Update nav button
+            const voiceBtn = document.getElementById('voiceStatusBtn');
+            if (voiceBtn) voiceBtn.classList.remove('active');
+            const navLabel = document.getElementById('voiceStatusLabel');
+            if (navLabel) navLabel.textContent = 'Guardian';
+          } else {
+            this._start();
+            toggleBtn.innerHTML = '<i class="fas fa-stop me-2"></i> Disable Voice Guardian';
+            toggleBtn.className = 'btn btn-danger btn-lg w-100';
+            statusLbl && (statusLbl.textContent = 'Voice Guardian Active — Listening...');
+            waveformNav?.classList.remove('inactive');
+            waveformModal?.classList.remove('inactive');
+            const voiceBtn = document.getElementById('voiceStatusBtn');
+            if (voiceBtn) voiceBtn.classList.add('active');
+            const navLabel = document.getElementById('voiceStatusLabel');
+            if (navLabel) navLabel.textContent = 'Listening';
+            bootstrap.Modal.getInstance(document.getElementById('voiceModal'))?.hide();
+            toast.success('Voice Guardian Active', 'Say "help me", "save me", or "emergency" to trigger SOS.');
+          }
         });
-    </script>
-    
-    {% block scripts %}{% endblock %}
+      },
+
+      _initRecognition() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.recognition = new SR();
+        this.recognition.continuous = true;
+        this.recognition.interimResults = false;
+        this.recognition.lang = 'en-US';
+
+        this.recognition.onresult = (e) => {
+          const text = e.results[e.results.length - 1][0].transcript.trim().toLowerCase();
+          if (text.includes('help me') || text.includes('save me') || text.includes('emergency')) {
+            this._triggerSOS(text);
+          }
+        };
+
+        this.recognition.onerror = () => {};
+        this.recognition.onend = () => {
+          if (this.active) { try { this.recognition.start(); } catch(e){} }
+        };
+      },
+
+      _start() { this.active = true; try { this.recognition.start(); } catch(e){} },
+      _stop()  { this.active = false; try { this.recognition.stop(); } catch(e){} },
+
+      _triggerSOS(phrase) {
+        fetch('/api/emergency-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            keyword: phrase,
+            latitude: this.userCoords?.latitude || 28.6139,
+            longitude: this.userCoords?.longitude || 77.2090,
+            timestamp: new Date().toISOString()
+          })
+        }).then(() => {
+          toast.danger('🚨 Voice SOS Triggered', `Emergency phrase detected: "${phrase}". Alerting emergency services.`);
+        }).catch(() => {});
+      }
+    };
+
+    // ── Public API ──────────────────────────────────────────────
+    return {
+      bus, theme, toast, sos, voiceGuardian,
+      counters, scrollReveal, scrollProgress, preloader,
+
+      init() {
+        preloader.init();
+        theme.init();
+        scrollProgress.init();
+        scrollReveal.init();
+        counters.init();
+        sos.init();
+        voiceGuardian.init();
+      }
+    };
+  })();
+
+  // ── Boot ──
+  document.addEventListener('DOMContentLoaded', () => Raahi.init());
+
+  // ── Expose globally ──
+  window.Raahi = Raahi;
+  window.showToast = (t, m, type) => Raahi.toast.show(t, m, type);
+  // Backward compat
+  window.showGlobalToast = (t, m, type) => Raahi.toast.show(t, m, type === 'danger' ? 'danger' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info');
+  </script>
+
+  {% block scripts %}{% endblock %}
 </body>
 </html>

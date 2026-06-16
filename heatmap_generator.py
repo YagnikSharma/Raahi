@@ -11,14 +11,17 @@ from typing import List, Tuple
 import os
 
 class HeatmapGenerator:
-    def __init__(self, db_path='anomalies.db'):
+    def __init__(self, db_path=None):
         """
         Initialize heatmap generator
         
         Args:
             db_path (str): Path to SQLite database
         """
-        self.db_path = db_path
+        if db_path is None:
+            self.db_path = "/tmp/anomalies.db" if os.environ.get("VERCEL") == "1" else "anomalies.db"
+        else:
+            self.db_path = db_path
     
     def generate_heatmap(self, video_name=None, video_width=1920, video_height=1080, output_path='heatmap.png'):
         """
