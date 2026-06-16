@@ -23,7 +23,11 @@ mail = Mail()
 jwt = JWTManager()
 
 # Create Flask application
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static'),
+    template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
