@@ -1,247 +1,353 @@
 {% extends 'base.html' %}
 
-{% block title %}Incident Details | Raahi Admin{% endblock %}
+{% block title %}Incident #{{ incident.id }} Report Detail — Raahi Admin{% endblock %}
+
+{% block styles %}
+<style>
+/* ── Incident Badge Header ── */
+.incident-header {
+  margin-bottom: 2.5rem;
+}
+.incident-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ── Panel Styling ── */
+.detail-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.75rem;
+  overflow: hidden;
+}
+.detail-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--surface-overlay);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.detail-card-header h5 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+.detail-card-body {
+  padding: 1.5rem;
+}
+.detail-card-footer {
+  padding: 1rem 1.5rem;
+  background: var(--surface-overlay);
+  border-top: 1px solid var(--surface-border);
+}
+
+/* ── Key Value Details Table ── */
+.detail-table {
+  width: 100%;
+  margin-bottom: 0;
+}
+.detail-table tr {
+  border-bottom: 1px solid var(--surface-border);
+}
+.detail-table tr:last-child {
+  border-bottom: none;
+}
+.detail-table th {
+  padding: 1rem 0.75rem 1rem 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.825rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  width: 35%;
+  vertical-align: top;
+}
+.detail-table td {
+  padding: 1rem 0 1rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+/* ── Confidence Indicator ── */
+.confidence-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.confidence-bar-outer {
+  flex-grow: 1;
+  max-width: 150px;
+  height: 6px;
+  background: var(--surface-base);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.confidence-bar-inner {
+  height: 100%;
+  border-radius: var(--radius-full);
+}
+
+/* ── Map container override ── */
+#incidentMap {
+  background: var(--surface-base);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+}
+
+/* ── Leaflet Marker styling ── */
+.incident-marker {
+  font-size: 1.75rem;
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 0 10px var(--color-danger-glow);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1>
-                    <span class="badge 
-                        {% if incident.incident_type == 'fire' or incident.incident_type == 'explosion' %}
-                            bg-danger
-                        {% elif incident.incident_type == 'fight' or incident.incident_type == 'weapon' %}
-                            bg-warning
-                        {% elif incident.incident_type == 'darkness' %}
-                            bg-secondary
-                        {% else %}
-                            bg-primary
-                        {% endif %}
-                    ">
-                        {{ incident.incident_type|capitalize }}
-                    </span>
-                    Incident #{{ incident.id }}
-                </h1>
-                <div>
-                    <a href="{{ url_for('admin.incidents') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-list me-2"></i> All Incidents
+<div class="container py-5">
+  <!-- ── Breadcrumb & Header ── -->
+  <div class="incident-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb" style="font-size: 0.8rem; margin-bottom: 0.5rem;">
+          <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('admin.incidents') }}">Incidents</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Incident #{{ incident.id }}</li>
+        </ol>
+      </nav>
+      <div class="incident-title">
+        {% set t = incident.incident_type|lower %}
+        <span class="badge" style="background:var(--color-{{ 'danger' if t in ['fire','explosion','smoke'] else 'caution' if t in ['fight','weapon'] else 'primary' }}-alpha);color:var(--color-{{ 'danger' if t in ['fire','explosion','smoke'] else 'caution' if t in ['fight','weapon'] else 'primary' }});border:1px solid rgba(255,255,255,0.06);font-size:0.85rem;padding:0.4rem 0.8rem;border-radius:var(--radius-full);">
+          {{ incident.incident_type|upper }}
+        </span>
+        <span>Incident Report #{{ incident.id }}</span>
+      </div>
+    </div>
+    <div>
+      <a href="{{ url_for('admin.incidents') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2">
+        <i class="fas fa-list" aria-hidden="true"></i> Back to List
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Details -->
+    <div class="col-lg-8">
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <i class="fas fa-info-circle" style="color:var(--color-primary-light);" aria-hidden="true"></i>
+          <h5>Incident Profile</h5>
+        </div>
+        <div class="detail-card-body">
+          <div class="row g-3">
+            <!-- Left Side Details Table -->
+            <div class="col-md-6">
+              <table class="detail-table">
+                <tr>
+                  <th>Class Type</th>
+                  <td><strong style="text-transform: capitalize;">{{ incident.incident_type }}</strong></td>
+                </tr>
+                <tr>
+                  <th>GPS Position</th>
+                  <td>
+                    <a href="https://www.google.com/maps?q={{ incident.latitude }},{{ incident.longitude }}" target="_blank" style="color:var(--color-accent);text-decoration:none;">
+                      {{ incident.latitude|round(6) }}, {{ incident.longitude|round(6) }}
+                      <i class="fas fa-arrow-up-right-from-square ms-1" style="font-size: 0.75rem;" aria-hidden="true"></i>
                     </a>
-                </div>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Detection Time</th>
+                  <td>{{ incident.timestamp.strftime('%d %b %Y, %H:%M:%S') }}</td>
+                </tr>
+                <tr>
+                  <th>AI Confidence</th>
+                  <td>
+                    <div class="confidence-wrapper">
+                      {% set conf_pct = (incident.confidence * 100)|int %}
+                      <div class="confidence-bar-outer" title="AI confidence: {{ conf_pct }}%">
+                        <div class="confidence-bar-inner 
+                          {% if incident.confidence < 0.5 %}
+                            bg-warning
+                          {% elif incident.confidence < 0.75 %}
+                            bg-info
+                          {% else %}
+                            bg-success
+                          {% endif %}"
+                          style="width: {{ conf_pct }}%;">
+                        </div>
+                      </div>
+                      <span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:600;">{{ conf_pct }}%</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
             </div>
+
+            <!-- Right Side Details Table -->
+            <div class="col-md-6">
+              <table class="detail-table">
+                <tr>
+                  <th>Sensor Source</th>
+                  <td>
+                    {% if incident.camera %}
+                      <a href="{{ url_for('admin.camera_detail', camera_id=incident.camera.id) }}" style="color:var(--color-accent);text-decoration:none;font-weight:600;">
+                        <i class="fas fa-video me-1" style="font-size:0.75rem;" aria-hidden="true"></i> {{ incident.camera.name }}
+                      </a>
+                    {% else %}
+                      <span class="text-secondary">Global Trigger / Dispatch</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Audit Status</th>
+                  <td>
+                    {% if incident.is_verified %}
+                      <span class="badge d-inline-flex align-items-center gap-1" style="background:var(--color-safe-alpha);color:var(--color-safe);border:1px solid rgba(16,185,129,0.2);font-size:0.65rem;font-weight:700;">
+                        <i class="fas fa-circle-check" aria-hidden="true"></i> Verified Record
+                      </span>
+                    {% else %}
+                      <span class="badge d-inline-flex align-items-center gap-1" style="background:rgba(156,163,175,0.1);color:var(--text-secondary);border:1px solid var(--surface-border);font-size:0.65rem;font-weight:700;">
+                        <i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Pending Verification
+                      </span>
+                    {% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Alert Logs</th>
+                  <td>
+                    {% if related_alerts|default([])|length > 0 %}
+                      <span class="badge bg-info">{{ related_alerts|length }} active dispatches</span>
+                    {% else %}
+                      <span class="text-secondary">No system warnings triggered</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Extra Details</th>
+                  <td class="text-secondary" style="font-size:0.8rem;line-height:1.4;">
+                    {{ incident.details if incident.details else 'No notes added by operator.' }}
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
         </div>
+        <div class="detail-card-footer d-flex justify-content-between align-items-center">
+          <div>
+            {% if not incident.is_verified %}
+              <form id="verifyForm" action="{{ url_for('admin.incident_detail', incident_id=incident.id) }}" method="POST" class="d-inline">
+                <input type="hidden" name="action" value="verify">
+                <button type="submit" class="btn btn-success d-flex align-items-center gap-2">
+                  <i class="fas fa-check-double" aria-hidden="true"></i> Confirm Verification
+                </button>
+              </form>
+            {% endif %}
+          </div>
+          <div>
+            <form action="{{ url_for('admin.incident_detail', incident_id=incident.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Confirm permanent deletion of this incident report?');">
+              <input type="hidden" name="action" value="delete">
+              <button type="submit" class="btn btn-danger d-flex align-items-center gap-2">
+                <i class="fas fa-trash" aria-hidden="true"></i> Delete Record
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
-    
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Incident Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table">
-                                <tr>
-                                    <th>Incident Type:</th>
-                                    <td>{{ incident.incident_type|capitalize }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Location:</th>
-                                    <td>
-                                        <a href="https://www.google.com/maps?q={{ incident.latitude }},{{ incident.longitude }}" target="_blank">
-                                            {{ incident.latitude|round(6) }}, {{ incident.longitude|round(6) }}
-                                            <i class="fas fa-external-link-alt ms-1 small"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Date & Time:</th>
-                                    <td>{{ incident.timestamp.strftime('%d %b %Y, %H:%M:%S') }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Detection Confidence:</th>
-                                    <td>
-                                        <div class="progress" style="height: 10px;">
-                                            <div class="progress-bar 
-                                                {% if incident.confidence < 0.5 %}
-                                                    bg-warning
-                                                {% elif incident.confidence < 0.7 %}
-                                                    bg-info
-                                                {% else %}
-                                                    bg-success
-                                                {% endif %}"
-                                                role="progressbar" 
-                                                style="width: {{ (incident.confidence * 100)|int }}%"
-                                                aria-valuenow="{{ (incident.confidence * 100)|int }}" 
-                                                aria-valuemin="0" 
-                                                aria-valuemax="100">
-                                            </div>
-                                        </div>
-                                        <small>{{ (incident.confidence * 100)|int }}%</small>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table">
-                                <tr>
-                                    <th>Camera:</th>
-                                    <td>
-                                        {% if incident.camera %}
-                                            <a href="{{ url_for('admin.camera_detail', camera_id=incident.camera.id) }}">
-                                                {{ incident.camera.name }} ({{ incident.camera.location }})
-                                            </a>
-                                        {% else %}
-                                            Not from a camera
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Status:</th>
-                                    <td>
-                                        {% if incident.is_verified %}
-                                            <span class="badge bg-success">Verified</span>
-                                            by Admin
-                                        {% else %}
-                                            <span class="badge bg-secondary">Unverified</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Related Alerts:</th>
-                                    <td>
-                                        {% if related_alerts|default([])|length > 0 %}
-                                            <span class="badge bg-info">{{ related_alerts|default([])|length }} alerts</span>
-                                        {% else %}
-                                            No related alerts
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Details:</th>
-                                    <td>
-                                        {% if incident.details %}
-                                            {{ incident.details }}
-                                        {% else %}
-                                            No additional details
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            {% if not incident.is_verified %}
-                                <form id="verifyForm" action="{{ url_for('admin.incident_detail', incident_id=incident.id) }}" method="POST" class="d-inline">
-                                    <input type="hidden" name="action" value="verify">
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="fas fa-check me-2"></i> Verify Incident
-                                    </button>
-                                </form>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <form action="{{ url_for('admin.incident_detail', incident_id=incident.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this incident?');">
-                                <input type="hidden" name="action" value="delete">
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="fas fa-trash me-2"></i> Delete Incident
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+    <!-- Right Column: Media and Location Map -->
+    <div class="col-lg-4">
+      <!-- Image feed card -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <i class="fas fa-image" style="color:var(--color-accent);" aria-hidden="true"></i>
+          <h5>Surveillance Snapshot</h5>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-camera me-2"></i> Detection Image</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="camera-feed bg-dark text-white">
-                        {% if incident.image_path %}
-                            <img src="{{ incident.image_path }}" class="img-fluid w-100" alt="Incident Detection">
-                        {% else %}
-                            <div class="camera-overlay">
-                                <div class="text-center p-4">
-                                    <i class="fas fa-image fa-3x mb-3"></i>
-                                    <p>No image available for this incident</p>
-                                </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
+        <div class="detail-card-body p-0" style="background:#000;">
+          {% if incident.image_path %}
+            <img src="{{ incident.image_path }}" class="img-fluid w-100" alt="Camera Incident Capture Snapshot" style="max-height: 250px; object-fit: contain;">
+          {% else %}
+            <div class="d-flex flex-column align-items-center justify-content-center py-5 text-secondary" style="min-height:200px;">
+              <i class="fas fa-image fa-3x mb-3" style="opacity: 0.3;" aria-hidden="true"></i>
+              <span class="small">No static capture available</span>
             </div>
-            
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i> Incident Location</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div id="incidentMap" style="height: 300px;"></div>
-                </div>
-            </div>
+          {% endif %}
         </div>
+      </div>
+
+      <!-- Map location card -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <i class="fas fa-map-pin" style="color:var(--color-danger);" aria-hidden="true"></i>
+          <h5>Incident Area Coordinates</h5>
+        </div>
+        <div class="detail-card-body p-0">
+          <div id="incidentMap" style="height: 250px; width: 100%;"></div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/map.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize the incident map
-        const map = L.map('incidentMap').setView([{{ incident.latitude }}, {{ incident.longitude }}], 15);
-        
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        // Add incident marker
-        const incidentIcon = L.divIcon({
-            html: '<i class="fas fa-exclamation-circle"></i>',
-            className: 'incident-marker',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        });
-        
-        const marker = L.marker([{{ incident.latitude }}, {{ incident.longitude }}], {
-            icon: incidentIcon
-        }).addTo(map);
-        
-        marker.bindPopup(`
-            <h6>{{ incident.incident_type|capitalize }}</h6>
-            <p>Detected: {{ incident.timestamp.strftime('%d %b %Y, %H:%M') }}</p>
-            <p>Confidence: {{ (incident.confidence * 100)|int }}%</p>
-        `).openPopup();
-        
-        // Add safety zone if available
-        fetch(`/api/safety/{{ incident.latitude }}/{{ incident.longitude }}`)
-            .then(response => response.json())
-            .then(data => {
-                // Add safety zone circle
-                const zoneCircle = L.circle([{{ incident.latitude }}, {{ incident.longitude }}], {
-                    color: data.color,
-                    fillColor: data.color,
-                    fillOpacity: 0.3,
-                    radius: 500  // in meters
-                }).addTo(map);
-                
-                zoneCircle.bindPopup(`
-                    <h6>Safety Zone</h6>
-                    <p>Safety Level: <span class="badge bg-${data.safety_level === 0 ? 'success' : data.safety_level === 1 ? 'warning' : data.safety_level === 2 ? 'orange' : 'danger'}">${data.safety_label}</span></p>
-                    <p>Incident Count: ${data.incident_count}</p>
-                `);
-            })
-            .catch(error => {
-                console.error('Error fetching safety data:', error);
-            });
-    });
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Dark Mode Map layer
+  const map = L.map('incidentMap', { zoomControl: false }).setView([{{ incident.latitude }}, {{ incident.longitude }}], 14);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
+  }).addTo(map);
+
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  const incidentIcon = L.divIcon({
+    html: '<i class="fas fa-circle-exclamation"></i>',
+    className: 'incident-marker',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+
+  const marker = L.marker([{{ incident.latitude }}, {{ incident.longitude }}], { icon: incidentIcon }).addTo(map);
+
+  marker.bindPopup(`
+    <div style="font-family:var(--font-body);padding:2px;">
+      <h6 style="font-weight:700;margin-bottom:4px;text-transform:capitalize;">{{ incident.incident_type }}</h6>
+      <span style="font-size:0.75rem;color:var(--text-secondary);">Confidence: {{ (incident.confidence*100)|int }}%</span>
+    </div>
+  `).openPopup();
+
+  // Fetch Zone data
+  fetch(`/api/safety/{{ incident.latitude }}/{{ incident.longitude }}`)
+    .then(r => r.json())
+    .then(data => {
+      L.circle([{{ incident.latitude }}, {{ incident.longitude }}], {
+        color: data.color || 'var(--color-primary)',
+        fillColor: data.color || 'var(--color-primary)',
+        fillOpacity: 0.15,
+        radius: 400
+      }).addTo(map);
+    })
+    .catch(err => console.error('Error fetching zone circle details:', err));
+});
 </script>
 {% endblock %}

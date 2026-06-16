@@ -93,6 +93,23 @@ def load_user(user_id):
     from models import User
     return User.query.get(int(user_id))
 
+# Helper routes to serve uploads and processed files on serverless Vercel from /tmp
+@app.route('/static/processed/<path:filename>')
+def serve_processed(filename):
+    from flask import send_from_directory
+    tmp_processed = '/tmp/processed'
+    if os.path.exists(os.path.join(tmp_processed, filename)):
+        return send_from_directory(tmp_processed, filename)
+    return send_from_directory(os.path.join(app.static_folder, 'processed'), filename)
+
+@app.route('/static/uploads/<path:filename>')
+def serve_uploads(filename):
+    from flask import send_from_directory
+    tmp_uploads = '/tmp/uploads'
+    if os.path.exists(os.path.join(tmp_uploads, filename)):
+        return send_from_directory(tmp_uploads, filename)
+    return send_from_directory(os.path.join(app.static_folder, 'uploads'), filename)
+
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):

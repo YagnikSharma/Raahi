@@ -1,16 +1,84 @@
 {% extends 'base.html' %}
 
-{% block title %}Error {{ error_code }} | Raahi{% endblock %}
+{% block title %}Error {{ error_code }} — Raahi Safety Platform{% endblock %}
+
+{% block styles %}
+<style>
+/* ── Wrapper ── */
+.err-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 128px);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: 
+    radial-gradient(circle at 50% 50%, hsla(0,84%,60%,0.05) 0%, transparent 60%),
+    var(--surface-base);
+}
+
+.err-glow-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--color-danger-alpha);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+  color: var(--color-danger);
+  font-size: 2.25rem;
+  box-shadow: var(--shadow-glow-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.err-code-text {
+  font-family: var(--font-display);
+  font-size: 7.5rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  margin-bottom: 1rem;
+  color: var(--color-danger);
+  text-shadow: 0 0 40px var(--color-danger-glow);
+}
+
+.err-message-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.err-desc-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  max-width: 480px;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container text-center py-5">
-    <div class="error-container">
-        <h1 class="display-1 text-danger">{{ error_code }}</h1>
-        <h2 class="mb-4">{{ error_message }}</h2>
-        <p class="lead mb-5">Sorry, something went wrong. Please try again or go back to the home page.</p>
-        <a href="{{ url_for('public.index') }}" class="btn btn-primary btn-lg">
-            <i class="fas fa-home me-2"></i> Back to Home
-        </a>
-    </div>
+<div class="err-container">
+  <div class="err-glow-icon" aria-hidden="true">
+    <i class="fas fa-triangle-exclamation"></i>
+  </div>
+  
+  <div class="err-code-text">{{ error_code }}</div>
+  
+  <h1 class="err-message-title">{{ error_message }}</h1>
+  
+  <p class="err-desc-text">
+    The requested resources or path may be temporarily locked down, outdated, or offline. For urgent reports, use the SOS dispatch button in the control toolbar.
+  </p>
+
+  <a href="{{ url_for('public.index') }}" class="btn btn-primary btn-lg d-inline-flex align-items-center gap-2">
+    <i class="fas fa-house" aria-hidden="true"></i> Back to Main Portal
+  </a>
 </div>
 {% endblock %}

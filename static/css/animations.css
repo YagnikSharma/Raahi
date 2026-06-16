@@ -1,0 +1,378 @@
+/*
+ * Raahi 2.0 — Animation Library
+ * Dedicated keyframes, entrance animations, loop animations
+ */
+
+/* ─────────────────────────────────────────────────────────────────
+   ENTRANCE ANIMATIONS
+───────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUpSpring {
+  0%   { opacity: 0; transform: translateY(32px); }
+  60%  { opacity: 1; transform: translateY(-4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.8); }
+  60%  { transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LOOP ANIMATIONS
+───────────────────────────────────────────────────────────────── */
+
+/* Floating / levitating */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-8px) rotate(1deg); }
+  66%       { transform: translateY(-4px) rotate(-1deg); }
+}
+
+/* Glow / pulse glow */
+@keyframes glowPrimary {
+  0%, 100% { box-shadow: 0 0 16px var(--color-primary-glow, rgba(79,70,229,0.4)); }
+  50%       { box-shadow: 0 0 32px var(--color-primary-glow, rgba(79,70,229,0.6)), 0 0 64px var(--color-primary-alpha, rgba(79,70,229,0.15)); }
+}
+
+@keyframes glowDanger {
+  0%, 100% { box-shadow: 0 0 16px var(--color-danger-glow, rgba(239,68,68,0.35)); }
+  50%       { box-shadow: 0 0 32px var(--color-danger-glow, rgba(239,68,68,0.6)), 0 0 64px var(--color-danger-alpha, rgba(239,68,68,0.15)); }
+}
+
+@keyframes glowAccent {
+  0%, 100% { box-shadow: 0 0 16px var(--color-accent-glow, rgba(6,182,212,0.35)); }
+  50%       { box-shadow: 0 0 32px var(--color-accent-glow, rgba(6,182,212,0.6)), 0 0 64px var(--color-accent-alpha, rgba(6,182,212,0.12)); }
+}
+
+/* Scanning line */
+@keyframes scanSweep {
+  0%   { top: -5%; opacity: 0.8; }
+  80%  { opacity: 0.8; }
+  100% { top: 105%; opacity: 0; }
+}
+
+/* Orbit */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
+}
+
+/* Shimmer gradient */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsla(243, 75%, 59%, 0.3) 40%,
+    hsla(191, 97%, 43%, 0.3) 60%,
+    transparent 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Rotate */
+@keyframes rotateSlowCW  { to { transform: rotate(360deg); } }
+@keyframes rotateSlowCCW { to { transform: rotate(-360deg); } }
+
+/* Dash animation for SVG paths */
+@keyframes dashDraw {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Data stream dots */
+@keyframes dataStream {
+  0%   { opacity: 0; transform: translateX(-20px); }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(20px); }
+}
+
+/* Blink cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* Counter number flip */
+@keyframes numFlip {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   UTILITY ANIMATION CLASSES
+───────────────────────────────────────────────────────────────── */
+
+.animate-fade-in      { animation: fadeIn 0.5s var(--ease-smooth, ease) forwards; }
+.animate-fade-in-up   { animation: fadeInUp 0.6s var(--ease-spring, ease) forwards; }
+.animate-fade-in-down { animation: fadeInDown 0.6s var(--ease-spring, ease) forwards; }
+.animate-fade-in-left { animation: fadeInLeft 0.6s var(--ease-spring, ease) forwards; }
+.animate-fade-in-right { animation: fadeInRight 0.6s var(--ease-spring, ease) forwards; }
+.animate-pop-in       { animation: popIn 0.5s var(--ease-bounce, cubic-bezier(0.34, 1.56, 0.64, 1)) forwards; }
+.animate-float        { animation: float 4s ease-in-out infinite; }
+.animate-float-slow   { animation: floatSlow 6s ease-in-out infinite; }
+.animate-glow-primary { animation: glowPrimary 2.5s ease-in-out infinite; }
+.animate-glow-danger  { animation: glowDanger 2s ease-in-out infinite; }
+.animate-glow-accent  { animation: glowAccent 3s ease-in-out infinite; }
+.animate-spin         { animation: rotateSlowCW 8s linear infinite; }
+.animate-spin-slow    { animation: rotateSlowCW 20s linear infinite; }
+.animate-pulse-light  { animation: badge-pulse 2s ease-in-out infinite; }
+
+/* Animation delays for groups */
+.anim-delay-0  { animation-delay: 0s; }
+.anim-delay-1  { animation-delay: 0.1s; }
+.anim-delay-2  { animation-delay: 0.2s; }
+.anim-delay-3  { animation-delay: 0.3s; }
+.anim-delay-4  { animation-delay: 0.4s; }
+.anim-delay-5  { animation-delay: 0.5s; }
+.anim-delay-6  { animation-delay: 0.6s; }
+.anim-delay-7  { animation-delay: 0.7s; }
+.anim-delay-8  { animation-delay: 0.8s; }
+
+/* Initially hidden for entrance animations */
+.anim-hidden { opacity: 0; }
+
+/* ─────────────────────────────────────────────────────────────────
+   HERO SPECIFIC
+───────────────────────────────────────────────────────────────── */
+
+/* Animated grid bg */
+.hero-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 100%);
+  animation: grid-drift 20s linear infinite;
+}
+
+@keyframes grid-drift {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 40px 40px, 40px 40px; }
+}
+
+/* Glowing orbs */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.hero-orb-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, hsla(243, 75%, 59%, 0.15), transparent 70%);
+  top: -100px;
+  left: -100px;
+  animation: orb-drift-1 15s ease-in-out infinite alternate;
+}
+
+.hero-orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, hsla(191, 97%, 43%, 0.12), transparent 70%);
+  bottom: -50px;
+  right: -50px;
+  animation: orb-drift-2 18s ease-in-out infinite alternate;
+}
+
+@keyframes orb-drift-1 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(60px, 40px) scale(1.1); }
+}
+
+@keyframes orb-drift-2 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-40px, -60px) scale(0.9); }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DASHBOARD / MONITORING ANIMATIONS
+───────────────────────────────────────────────────────────────── */
+
+/* Live scan line */
+.live-scan::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-safe), transparent);
+  box-shadow: 0 0 8px var(--color-safe);
+  animation: scanSweep 3s ease-in-out infinite;
+}
+
+/* Alert item new-entry bounce */
+@keyframes alertBounceIn {
+  0%   { opacity: 0; transform: translateX(-16px) scale(0.97); }
+  70%  { transform: translateX(3px) scale(1.01); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.alert-new { animation: alertBounceIn 0.5s var(--ease-spring, ease) forwards; }
+
+/* Heartbeat for critical alerts */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14%       { transform: scale(1.1); }
+  28%       { transform: scale(1); }
+  42%       { transform: scale(1.08); }
+  70%       { transform: scale(1); }
+}
+
+.animate-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
+
+/* Counter tick */
+@keyframes counterTick {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Map marker appear */
+@keyframes markerDrop {
+  0%   { transform: translateY(-20px) scale(0); opacity: 0; }
+  60%  { transform: translateY(4px) scale(1.15); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.marker-animate { animation: markerDrop 0.5s var(--ease-spring, ease) forwards; }
+
+/* ─────────────────────────────────────────────────────────────────
+   CCTV / CAMERA ANIMATIONS
+───────────────────────────────────────────────────────────────── */
+
+/* Recording indicator */
+@keyframes recBlink {
+  0%, 45%  { opacity: 1; }
+  50%, 95% { opacity: 0.15; }
+  100%     { opacity: 1; }
+}
+
+.rec-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  animation: recBlink 2s ease-in-out infinite;
+}
+
+/* Detection box scan */
+@keyframes detectionScan {
+  0%   { box-shadow: 0 0 8px var(--color-danger-glow, rgba(239,68,68,0.35)), 0 0 0 1px rgba(239,68,68,0.4); }
+  50%  { box-shadow: 0 0 20px var(--color-danger-glow, rgba(239,68,68,0.5)), 0 0 0 2px rgba(239,68,68,0.6); }
+  100% { box-shadow: 0 0 8px var(--color-danger-glow, rgba(239,68,68,0.35)), 0 0 0 1px rgba(239,68,68,0.4); }
+}
+
+/* Progress line for video processing */
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PAGE TRANSITIONS
+───────────────────────────────────────────────────────────────── */
+
+.page-transition-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--surface-base, #07080b);
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-smooth, ease);
+}
+
+.page-transition-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   MICRO-INTERACTIONS
+───────────────────────────────────────────────────────────────── */
+
+/* Button press effect */
+.btn:active { transform: scale(0.97) !important; }
+
+/* Icon rotate on parent hover */
+.hover-rotate-icon:hover .icon-rotate { transform: rotate(15deg); }
+.icon-rotate { transition: transform 0.3s var(--ease-spring, ease); }
+
+/* Arrow slide on hover */
+.hover-arrow-slide .arrow { transition: transform 0.3s var(--ease-spring, ease); }
+.hover-arrow-slide:hover .arrow { transform: translateX(4px); }
+
+/* Expand underline */
+.underline-expand {
+  position: relative;
+  display: inline-block;
+}
+
+.underline-expand::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--color-primary, #4f46e5);
+  border-radius: 1px;
+  transition: width 0.3s var(--ease-spring, ease);
+}
+
+.underline-expand:hover::after { width: 100%; }
+
+/* Card tilt on hover (subtle) */
+@media (hover: hover) {
+  .card-tilt {
+    transition: transform 0.2s ease;
+    transform-style: preserve-3d;
+  }
+}

@@ -1,172 +1,478 @@
 {% extends 'base.html' %}
 
-{% block title %}Safety Map Navigator | Raahi{% endblock %}
+{% block title %}Safety Map Navigator — Raahi{% endblock %}
+
+{% block styles %}
+<style>
+body { overflow: hidden; }
+
+.map-shell {
+  height: calc(100vh - 64px);
+  display: grid;
+  grid-template-columns: 380px 1fr;
+}
+
+@media (max-width: 1024px) {
+  body { overflow: auto; }
+  .map-shell { grid-template-columns: 1fr; height: auto; }
+  #safetyMap { height: 55vh !important; border-radius: var(--radius-lg) !important; }
+}
+
+/* Sidebar */
+.map-sidebar {
+  background: var(--surface-raised);
+  border-right: 1px solid var(--surface-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 50;
+}
+
+.map-sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-border) transparent;
+  padding: var(--space-5);
+}
+
+.map-sidebar-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--surface-overlay);
+}
+
+/* Map container */
+.map-main {
+  position: relative;
+  overflow: hidden;
+}
+
+#safetyMap {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+/* Map overlay controls */
+.map-controls {
+  position: absolute;
+  top: 16px; right: 16px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.map-ctrl-btn {
+  width: 36px; height: 36px;
+  background: var(--surface-overlay);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-spring);
+  font-size: 0.85rem;
+}
+
+.map-ctrl-btn:hover { border-color: var(--surface-border-hover); color: var(--text-primary); background: var(--surface-hover); }
+
+/* Stats bar above map sidebar */
+.zone-stats {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--surface-border);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.zone-stat {
+  text-align: center;
+  padding: var(--space-2) 0;
+  position: relative;
+}
+
+.zone-stat + .zone-stat::before {
+  content: ''; position: absolute; left: 0; top: 15%; bottom: 15%; width: 1px;
+  background: var(--surface-border);
+}
+
+.zone-stat-num { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; line-height: 1; }
+.zone-stat-label { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+
+/* Route option */
+.route-option-card {
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-spring);
+  position: relative;
+  overflow: hidden;
+}
+
+.route-option-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.route-option-card:hover { border-color: var(--surface-border-hover); transform: translateX(2px); }
+.route-option-card.active { border-color: var(--color-safe) !important; background: var(--color-safe-alpha); }
+.route-option-card.active::before { background: var(--color-safe); }
+.route-option-card.route-danger::before { background: var(--color-danger); }
+.route-option-card.route-caution::before { background: var(--color-caution); }
+.route-option-card.route-safe::before { background: var(--color-safe); }
+
+/* Legend tiles */
+.legend-tile {
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid transparent;
+  flex: 1;
+}
+
+/* Map status badge */
+.map-status-badge {
+  position: absolute;
+  bottom: 16px; left: 16px;
+  z-index: 1000;
+  background: var(--surface-overlay);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  color: var(--color-safe);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2">
-    <div class="row g-4">
-        <!-- Leaflet Map Section -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-dark d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-white"><i class="fas fa-map-location-dot me-2"></i> Safety Heatmap Navigator</h5>
-                    <span class="badge bg-primary-glow border border-primary text-primary px-3 rounded-pill">
-                        <i class="fas fa-circle-dot me-1 text-success animate-pulse"></i> City Feed Seeding Live
-                    </span>
-                </div>
-                <div class="card-body p-0">
-                    <div id="safetyMap" style="height: 78vh; min-height: 500px;"></div>
-                </div>
-            </div>
+<div class="map-shell">
+  <!-- ════════════════════════════════════════════════════════
+       LEFT SIDEBAR
+  ════════════════════════════════════════════════════════ -->
+  <aside class="map-sidebar" aria-label="Map controls and route planner">
+    <!-- Header -->
+    <div class="map-sidebar-header">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--color-primary),var(--color-accent));border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:white;" aria-hidden="true">
+            <i class="fas fa-map-location-dot"></i>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:0.9rem;">Safety Map</div>
+            <div style="font-size:0.65rem;color:var(--text-tertiary);">Real-time incident overlay</div>
+          </div>
         </div>
-        
-        <!-- Sidebar Navigation Planner -->
-        <div class="col-lg-4">
-            <!-- Route Safety Planner Card -->
-            <div class="card glass-panel mb-4 shadow">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0 text-white"><i class="fas fa-route me-2 text-primary"></i> Route Safety Planner</h5>
-                </div>
-                <div class="card-body">
-                    <p class="small text-muted mb-3">Plan your travel route avoiding high-risk red zones and poorly-lit blocks.</p>
-                    
-                    <div class="mb-3">
-                        <label class="small text-muted form-label">Starting Point</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fas fa-location-dot"></i></span>
-                            <input type="text" id="routeStart" class="form-control border-start-0" placeholder="e.g. Connaught Place" value="Connaught Place">
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="small text-muted form-label">Destination</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fas fa-flag-checkered"></i></span>
-                            <input type="text" id="routeEnd" class="form-control border-start-0" placeholder="e.g. India Gate" value="India Gate">
-                        </div>
-                    </div>
-                    
-                    <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold" id="btnCalculateRoute">
-                        <i class="fas fa-compass me-1"></i> Compute Safest Route
-                    </button>
-                    
-                    <!-- Route Options display -->
-                    <div id="routeResults" class="mt-4 d-none">
-                        <h6 class="text-white mb-3 fw-bold"><i class="fas fa-circle-info me-1 text-info"></i> Alternative Routes Found</h6>
-                        <div id="routesList"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Quick Legend & Safety Scale -->
-            <div class="card glass-panel shadow mb-4">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0 text-white"><i class="fas fa-circle-question me-2"></i> Safety Legend</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between text-center gap-1">
-                        <div class="flex-fill p-2 rounded bg-success bg-opacity-10 border border-success-subtle">
-                            <span class="legend-circle bg-success mb-1"></span>
-                            <div class="small fw-semibold text-success">Safe</div>
-                            <div class="text-muted" style="font-size: 0.65rem;">0 incidents</div>
-                        </div>
-                        <div class="flex-fill p-2 rounded bg-warning bg-opacity-10 border border-warning-subtle">
-                            <span class="legend-circle bg-warning mb-1"></span>
-                            <div class="small fw-semibold text-warning">Caution</div>
-                            <div class="text-muted" style="font-size: 0.65rem;">1-2 incidents</div>
-                        </div>
-                        <div class="flex-fill p-2 rounded bg-orange bg-opacity-10 border border-orange-subtle">
-                            <span class="legend-circle bg-orange mb-1"></span>
-                            <div class="small fw-semibold text-orange">Caution+</div>
-                            <div class="text-muted" style="font-size: 0.65rem;">3-5 incidents</div>
-                        </div>
-                        <div class="flex-fill p-2 rounded bg-danger bg-opacity-10 border border-danger-subtle">
-                            <span class="legend-circle bg-danger mb-1"></span>
-                            <div class="small fw-semibold text-danger">Unsafe</div>
-                            <div class="text-muted" style="font-size: 0.65rem;">>5 incidents</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <span class="badge badge-safe badge-live" style="font-size:0.62rem;">Live</span>
+      </div>
     </div>
+
+    <!-- Zone Stats Strip -->
+    <div class="zone-stats" role="region" aria-label="Zone safety summary">
+      <div class="zone-stat">
+        <div class="zone-stat-num" style="color:var(--color-safe);" id="cnt-safe">{{ zones|selectattr('safety_level','equalto',0)|list|length }}</div>
+        <div class="zone-stat-label" style="color:var(--color-safe);">Safe</div>
+      </div>
+      <div class="zone-stat">
+        <div class="zone-stat-num" style="color:var(--color-caution);" id="cnt-caution">{{ zones|selectattr('safety_level','equalto',1)|list|length }}</div>
+        <div class="zone-stat-label" style="color:var(--color-caution);">Caution</div>
+      </div>
+      <div class="zone-stat">
+        <div class="zone-stat-num" style="color:var(--color-warning);" id="cnt-high">{{ zones|selectattr('safety_level','equalto',2)|list|length }}</div>
+        <div class="zone-stat-label" style="color:var(--color-warning);">High Risk</div>
+      </div>
+      <div class="zone-stat">
+        <div class="zone-stat-num" style="color:var(--color-danger);" id="cnt-danger">{{ zones|selectattr('safety_level','equalto',3)|list|length }}</div>
+        <div class="zone-stat-label" style="color:var(--color-danger);">Unsafe</div>
+      </div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="map-sidebar-scroll">
+
+      <!-- ── Route Planner ── -->
+      <section aria-labelledby="route-planner-heading">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="fas fa-route" style="color:var(--color-primary);font-size:0.85rem;" aria-hidden="true"></i>
+          <h2 style="font-size:0.875rem;font-weight:700;margin:0;" id="route-planner-heading">Route Safety Planner</h2>
+        </div>
+        <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:var(--space-4);">
+          Find the safest path between two points, automatically avoiding high-risk zones.
+        </p>
+
+        <div class="mb-3">
+          <label class="form-label" for="routeStart">Starting Point</label>
+          <div style="position:relative;">
+            <i style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--color-safe);font-size:0.8rem;" class="fas fa-location-dot" aria-hidden="true"></i>
+            <input type="text" id="routeStart" class="form-control"
+                   style="padding-left:2.25rem!important;"
+                   placeholder="e.g. Connaught Place"
+                   value="Connaught Place"
+                   aria-label="Route starting point">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label" for="routeEnd">Destination</label>
+          <div style="position:relative;">
+            <i style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--color-danger);font-size:0.8rem;" class="fas fa-flag-checkered" aria-hidden="true"></i>
+            <input type="text" id="routeEnd" class="form-control"
+                   style="padding-left:2.25rem!important;"
+                   placeholder="e.g. India Gate"
+                   value="India Gate"
+                   aria-label="Route destination">
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 mb-4"
+                id="btnCalculateRoute" style="border-radius:var(--radius-full);">
+          <i class="fas fa-compass" aria-hidden="true"></i>
+          Find Safest Route
+        </button>
+
+        <!-- Route Results -->
+        <div id="routeResults" class="d-none" aria-live="polite">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="fas fa-circle-info" style="color:var(--color-primary);font-size:0.8rem;" aria-hidden="true"></i>
+            <span style="font-size:0.82rem;font-weight:700;">Route Options</span>
+          </div>
+          <div id="routesList"></div>
+        </div>
+      </section>
+
+      <!-- ── Divider ── -->
+      <div class="section-separator my-4"></div>
+
+      <!-- ── Legend ── -->
+      <section aria-labelledby="legend-heading">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="fas fa-circle-question" style="color:var(--color-primary);font-size:0.85rem;" aria-hidden="true"></i>
+          <h2 style="font-size:0.875rem;font-weight:700;margin:0;" id="legend-heading">Zone Safety Legend</h2>
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <div class="legend-tile" style="background:var(--color-safe-alpha);border-color:hsla(158,64%,52%,0.2);">
+            <span class="legend-circle" style="background:var(--color-safe);" aria-hidden="true"></span>
+            <div>
+              <div style="font-weight:700;font-size:0.8rem;color:var(--color-safe);">Safe</div>
+              <div style="font-size:0.68rem;color:var(--text-tertiary);">0 incidents reported</div>
+            </div>
+          </div>
+          <div class="legend-tile" style="background:var(--color-caution-alpha);border-color:hsla(38,92%,50%,0.2);">
+            <span class="legend-circle" style="background:var(--color-caution);" aria-hidden="true"></span>
+            <div>
+              <div style="font-weight:700;font-size:0.8rem;color:var(--color-caution);">Caution</div>
+              <div style="font-size:0.68rem;color:var(--text-tertiary);">1-2 recent incidents</div>
+            </div>
+          </div>
+          <div class="legend-tile" style="background:var(--color-warning-alpha);border-color:hsla(25,95%,53%,0.2);">
+            <span class="legend-circle" style="background:var(--color-warning);" aria-hidden="true"></span>
+            <div>
+              <div style="font-weight:700;font-size:0.8rem;color:var(--color-warning);">High Risk</div>
+              <div style="font-size:0.68rem;color:var(--text-tertiary);">3-5 incidents logged</div>
+            </div>
+          </div>
+          <div class="legend-tile" style="background:var(--color-danger-alpha);border-color:hsla(0,84%,60%,0.2);">
+            <span class="legend-circle" style="background:var(--color-danger);" aria-hidden="true"></span>
+            <div>
+              <div style="font-weight:700;font-size:0.8rem;color:var(--color-danger);">Unsafe</div>
+              <div style="font-size:0.68rem;color:var(--text-tertiary);">&gt;5 incidents — avoid</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Divider ── -->
+      <div class="section-separator my-4"></div>
+
+      <!-- ── Map Toggles ── -->
+      <section aria-labelledby="layers-heading">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="fas fa-layer-group" style="color:var(--color-primary);font-size:0.85rem;" aria-hidden="true"></i>
+          <h2 style="font-size:0.875rem;font-weight:700;margin:0;" id="layers-heading">Map Layers</h2>
+        </div>
+
+        <div class="d-flex flex-column gap-2">
+          <label class="d-flex align-items-center justify-content-between" style="cursor:pointer;font-size:0.82rem;padding:var(--space-2) 0;">
+            <span class="d-flex align-items-center gap-2">
+              <i class="fas fa-shield-halved" style="color:var(--color-primary);width:16px;text-align:center;" aria-hidden="true"></i>
+              Safety Zones
+            </span>
+            <input type="checkbox" id="toggleZones" class="form-check-input" checked style="cursor:pointer;">
+          </label>
+          <label class="d-flex align-items-center justify-content-between" style="cursor:pointer;font-size:0.82rem;padding:var(--space-2) 0;border-top:1px solid var(--surface-border);">
+            <span class="d-flex align-items-center gap-2">
+              <i class="fas fa-triangle-exclamation" style="color:var(--color-danger);width:16px;text-align:center;" aria-hidden="true"></i>
+              Incidents
+            </span>
+            <input type="checkbox" id="toggleIncidents" class="form-check-input" checked style="cursor:pointer;">
+          </label>
+          <label class="d-flex align-items-center justify-content-between" style="cursor:pointer;font-size:0.82rem;padding:var(--space-2) 0;border-top:1px solid var(--surface-border);">
+            <span class="d-flex align-items-center gap-2">
+              <i class="fas fa-video" style="color:var(--color-accent);width:16px;text-align:center;" aria-hidden="true"></i>
+              Camera Grid
+            </span>
+            <input type="checkbox" id="toggleCameras" class="form-check-input" checked style="cursor:pointer;">
+          </label>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <!-- ════════════════════════════════════════════════════════
+       MAP PANEL
+  ════════════════════════════════════════════════════════ -->
+  <div class="map-main">
+    <!-- Leaflet Map -->
+    <div id="safetyMap" aria-label="Interactive safety map of the city"></div>
+
+    <!-- Overlay Controls -->
+    <div class="map-controls" aria-label="Map controls">
+      <button class="map-ctrl-btn" id="locateUserBtn" title="Locate me" aria-label="Pan to my location">
+        <i class="fas fa-location-crosshairs" aria-hidden="true"></i>
+      </button>
+      <button class="map-ctrl-btn" id="resetViewBtn" title="Reset map view" aria-label="Reset map view">
+        <i class="fas fa-compress" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="map-status-badge" aria-live="polite" id="mapStatusBadge">
+      <span class="rec-indicator" aria-hidden="true"></span>
+      <span id="mapStatusText">Live — Safety Grid Active</span>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Instantiate the custom SafetyMap
-        const safetyMap = new SafetyMap('safetyMap', {
-            defaultLat: {{ default_lat }},
-            defaultLng: {{ default_lng }},
-            defaultZoom: {{ default_zoom }},
-            enableUserLocation: true
+document.addEventListener('DOMContentLoaded', function() {
+  // ── Init Map ──
+  const safetyMap = new SafetyMap('safetyMap', {
+    defaultLat: {{ default_lat }},
+    defaultLng: {{ default_lng }},
+    defaultZoom: {{ default_zoom }},
+    enableUserLocation: true
+  });
+
+  safetyMap.loadSafetyZones();
+  safetyMap.loadIncidents();
+  safetyMap.loadCameras();
+
+  // ── Layer Toggles ──
+  document.getElementById('toggleZones')?.addEventListener('change', (e) => {
+    e.target.checked ? safetyMap.showZones() : safetyMap.hideZones();
+  });
+
+  document.getElementById('toggleIncidents')?.addEventListener('change', (e) => {
+    e.target.checked ? safetyMap.showIncidents() : safetyMap.hideIncidents();
+  });
+
+  document.getElementById('toggleCameras')?.addEventListener('change', (e) => {
+    e.target.checked ? safetyMap.showCameras() : safetyMap.hideCameras();
+  });
+
+  // ── Locate User ──
+  document.getElementById('locateUserBtn')?.addEventListener('click', () => {
+    if (navigator.geolocation) {
+      const statusText = document.getElementById('mapStatusText');
+      if (statusText) statusText.textContent = 'Acquiring location...';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          safetyMap.map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+          if (statusText) statusText.textContent = 'Location acquired';
+          Raahi.toast.success('Location found', 'Map centered on your position.');
+        },
+        () => {
+          if (statusText) statusText.textContent = 'Live — Safety Grid Active';
+          Raahi.toast.warning('Location unavailable', 'Please allow location access in your browser.');
+        }
+      );
+    }
+  });
+
+  // ── Reset View ──
+  document.getElementById('resetViewBtn')?.addEventListener('click', () => {
+    safetyMap.map.setView([{{ default_lat }}, {{ default_lng }}], {{ default_zoom }});
+  });
+
+  // ── Route Planner ──
+  const routeBtn     = document.getElementById('btnCalculateRoute');
+  const routeResults = document.getElementById('routeResults');
+  const routesList   = document.getElementById('routesList');
+
+  routeBtn?.addEventListener('click', function() {
+    const origHTML = routeBtn.innerHTML;
+    routeBtn.innerHTML = '<span class="r-spinner" style="border-top-color:white;border-color:rgba(255,255,255,0.3);width:16px;height:16px;border-width:2px;"></span> Analyzing paths...';
+    routeBtn.disabled = true;
+
+    const cpLat = {{ default_lat }};
+    const cpLng = {{ default_lng }};
+    const startLat = cpLat + (Math.random() * 0.01 - 0.005);
+    const startLng = cpLng + (Math.random() * 0.01 - 0.005);
+    const endLat   = cpLat + (Math.random() * 0.015 - 0.007);
+    const endLng   = cpLng + (Math.random() * 0.015 - 0.007);
+
+    safetyMap.evaluateRouteSafety(startLat, startLng, endLat, endLng, function(routes) {
+      routeBtn.innerHTML = origHTML;
+      routeBtn.disabled = false;
+      routeResults.classList.remove('d-none');
+      routesList.innerHTML = '';
+
+      const safetyToClass = { 0: 'route-safe', 1: 'route-caution', 2: 'route-caution', 3: 'route-danger' };
+      const safetyBadge   = { 0: 'badge-safe', 1: 'badge-caution', 2: 'badge-warning', 3: 'badge-danger' };
+
+      routes.forEach(route => {
+        const cls = safetyToClass[route.safety_level] || 'route-safe';
+        const bg  = safetyBadge[route.safety_level] || 'badge-safe';
+        const card = document.createElement('div');
+        card.className = `route-option-card ${route.id === 'safest' ? 'active route-safe' : cls}`;
+        card.innerHTML = `
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-weight:700;font-size:0.85rem;">${route.name}</span>
+            <span class="badge ${bg}" style="font-size:0.65rem;">${route.safety_score}% safe</span>
+          </div>
+          <div class="d-flex gap-4 mb-2" style="font-size:0.75rem;color:var(--text-secondary);">
+            <span><i class="fas fa-road me-1"></i>${route.distance} km</span>
+            <span><i class="fas fa-clock me-1"></i>${route.duration} min</span>
+          </div>
+          <p style="margin:0;font-size:0.72rem;color:var(--text-tertiary);">${route.description}</p>
+        `;
+
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.route-option-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          const midIdx = Math.floor(route.coordinates.length / 2);
+          safetyMap.map.panTo(route.coordinates[midIdx]);
         });
-        
-        // Load default cameras, incidents, and heat grid zones
-        safetyMap.loadSafetyZones();
-        safetyMap.loadIncidents();
-        safetyMap.loadCameras();
-        
-        // Handle route safety calculations
-        const btnCalculateRoute = document.getElementById('btnCalculateRoute');
-        const routeResults = document.getElementById('routeResults');
-        const routesList = document.getElementById('routesList');
-        
-        btnCalculateRoute.addEventListener('click', function() {
-            btnCalculateRoute.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Analyzing Safety Paths...';
-            btnCalculateRoute.disabled = true;
-            
-            // For Delhi center coordinates, simulate offsets dynamically around CP
-            const cpLat = 28.6139;
-            const cpLng = 77.2090;
-            
-            // Random coordinates around Delhi center to map Route Planner
-            const startLat = cpLat + (Math.random() * 0.01 - 0.005);
-            const startLng = cpLng + (Math.random() * 0.01 - 0.005);
-            const endLat = cpLat + (Math.random() * 0.015 - 0.007);
-            const endLng = cpLng + (Math.random() * 0.015 - 0.007);
-            
-            safetyMap.evaluateRouteSafety(startLat, startLng, endLat, endLng, function(routes) {
-                btnCalculateRoute.innerHTML = '<i class="fas fa-compass me-1"></i> Compute Safest Route';
-                btnCalculateRoute.disabled = false;
-                
-                routeResults.classList.remove('d-none');
-                routesList.innerHTML = '';
-                
-                routes.forEach(route => {
-                    const badgeClass = route.safety_level === 0 ? 'bg-success' : route.safety_level === 1 ? 'bg-warning' : route.safety_level === 2 ? 'bg-orange' : 'bg-danger';
-                    
-                    const card = document.createElement('div');
-                    card.className = `route-option-card ${route.id === 'safest' ? 'active' : ''}`;
-                    card.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-bold text-white small">${route.name}</span>
-                            <span class="badge ${badgeClass}">${route.safety_score}% Safe</span>
-                        </div>
-                        <div class="d-flex gap-3 small text-muted mb-2">
-                            <span><i class="fas fa-road me-1"></i>${route.distance} km</span>
-                            <span><i class="fas fa-clock me-1"></i>${route.duration} mins</span>
-                        </div>
-                        <p class="mb-0 text-muted" style="font-size: 0.75rem;">${route.description}</p>
-                    `;
-                    
-                    // Allow clicking sidebar card to open the route layer popup
-                    card.addEventListener('click', function() {
-                        document.querySelectorAll('.route-option-card').forEach(c => c.classList.remove('active'));
-                        card.classList.add('active');
-                        
-                        // Pan to middle of coordinates list
-                        const midIdx = Math.floor(route.coordinates.length / 2);
-                        safetyMap.map.panTo(route.coordinates[midIdx]);
-                    });
-                    
-                    routesList.appendChild(card);
-                });
-            });
-        });
+
+        routesList.appendChild(card);
+      });
+
+      if (routes.length > 0) {
+        Raahi.toast.success('Routes analyzed', `${routes.length} route options found.`);
+      }
     });
+  });
+});
 </script>
 {% endblock %}

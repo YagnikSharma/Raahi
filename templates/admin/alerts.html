@@ -1,282 +1,302 @@
 {% extends 'base.html' %}
 
-{% block title %}Alert Management | Raahi Admin{% endblock %}
+{% block title %}Alert Center — Raahi Operations{% endblock %}
+
+{% block styles %}
+<style>
+.filter-pill {
+  background: transparent;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.filter-pill:hover { border-color: var(--surface-border-hover); color: var(--text-primary); }
+.filter-pill.active {
+  background: var(--color-primary-alpha);
+  border-color: var(--color-primary);
+  color: var(--color-primary-light);
+}
+
+.filter-pill.pill-danger.active  { background: var(--color-danger-alpha); border-color: var(--color-danger); color: var(--color-danger); }
+.filter-pill.pill-warning.active { background: var(--color-warning-alpha); border-color: var(--color-warning); color: var(--color-warning); }
+.filter-pill.pill-caution.active { background: var(--color-caution-alpha); border-color: var(--color-caution); color: var(--color-caution); }
+.filter-pill.pill-safe.active    { background: var(--color-safe-alpha); border-color: var(--color-safe); color: var(--color-safe); }
+
+.alert-card {
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-3);
+  transition: all 0.2s var(--ease-spring);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.alert-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.alert-card.sev-critical::before { background: var(--color-danger); box-shadow: 0 0 10px var(--color-danger-glow); }
+.alert-card.sev-high::before     { background: var(--color-warning); box-shadow: 0 0 10px var(--color-warning-glow); }
+.alert-card.sev-medium::before   { background: var(--color-caution); box-shadow: 0 0 10px var(--color-caution-glow); }
+.alert-card.sev-low::before      { background: var(--color-safe); box-shadow: 0 0 10px var(--color-safe-glow); }
+.alert-card.sev-sos::before      { background: var(--color-danger); box-shadow: 0 0 10px var(--color-danger-glow); animation: glowDanger 1.5s infinite; }
+
+.alert-card:hover { border-color: var(--surface-border-hover); box-shadow: var(--shadow-md); }
+
+.alert-card.is-read { opacity: 0.6; }
+.alert-card.is-read:hover { opacity: 1; }
+
+.sev-icon {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1><i class="fas fa-bell me-2"></i> Alert Management</h1>
-                <div>
-                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
-                    </a>
-                </div>
-            </div>
+<div class="container py-5" style="max-width:1100px;">
+  <!-- Header -->
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-4 mb-5">
+    <div>
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--color-danger),var(--color-warning));border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;">
+          <i class="fas fa-bell" aria-hidden="true"></i>
         </div>
+        <h1 style="font-size:1.5rem;font-weight:800;margin:0;letter-spacing:-0.03em;">Alert Center</h1>
+      </div>
+      <p style="color:var(--text-secondary);font-size:0.875rem;margin:0;">
+        All system alerts, SOS events, and AI detection notifications.
+      </p>
     </div>
-    
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">System Alerts</h5>
-                        <div>
-                            <form class="d-flex" method="GET">
-                                <select name="type" class="form-select form-select-sm me-2" style="width: auto;">
-                                    <option value="">All Types</option>
-                                    <option value="sos">SOS Emergency</option>
-                                    <option value="detection">Detection</option>
-                                    <option value="system">System</option>
-                                </select>
-                                <select name="status" class="form-select form-select-sm me-2" style="width: auto;">
-                                    <option value="">All Status</option>
-                                    <option value="unread">Unread</option>
-                                    <option value="read">Read</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-                            </form>
-                        </div>
-                    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost btn-sm d-flex align-items-center gap-2">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="d-flex align-items-center gap-2 flex-wrap mb-5" role="group" aria-label="Filter alerts by severity">
+    <button class="filter-pill active" data-filter="all">
+      All <span class="badge badge-primary ms-1" style="font-size:0.6rem;">{{ alerts.total if alerts else 0 }}</span>
+    </button>
+    <button class="filter-pill pill-danger" data-filter="critical">
+      <i class="fas fa-circle-exclamation me-1" aria-hidden="true"></i> Critical
+    </button>
+    <button class="filter-pill pill-warning" data-filter="high">
+      <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i> High
+    </button>
+    <button class="filter-pill pill-caution" data-filter="medium">
+      <i class="fas fa-circle-info me-1" aria-hidden="true"></i> Medium
+    </button>
+    <button class="filter-pill pill-danger" data-filter="sos">
+      <i class="fas fa-person-falling-burst me-1" aria-hidden="true"></i> SOS
+    </button>
+    <button class="filter-pill pill-safe" data-filter="unread">
+      <i class="fas fa-circle me-1" aria-hidden="true"></i> Unread
+    </button>
+  </div>
+
+  <!-- Alert List -->
+  <div id="alertList">
+    {% if alerts.items %}
+      {% for alert in alerts.items %}
+        {% if alert.severity == 'critical' or alert.alert_type == 'sos' %}
+          {% set sev_cls = 'sev-' + ('sos' if alert.alert_type == 'sos' else 'critical') %}
+          {% set sev_color = 'danger' %}
+          {% set sev_icon = 'fa-circle-exclamation' if alert.alert_type != 'sos' else 'fa-person-falling-burst' %}
+        {% elif alert.severity == 'high' %}
+          {% set sev_cls = 'sev-high' %}
+          {% set sev_color = 'warning' %}
+          {% set sev_icon = 'fa-triangle-exclamation' %}
+        {% elif alert.severity == 'medium' %}
+          {% set sev_cls = 'sev-medium' %}
+          {% set sev_color = 'caution' %}
+          {% set sev_icon = 'fa-circle-info' %}
+        {% else %}
+          {% set sev_cls = 'sev-low' %}
+          {% set sev_color = 'safe' %}
+          {% set sev_icon = 'fa-circle-check' %}
+        {% endif %}
+
+        <div class="alert-card {{ sev_cls }} {% if alert.is_read %}is-read{% endif %} reveal"
+             data-severity="{{ alert.severity }}"
+             data-type="{{ alert.alert_type }}"
+             data-read="{{ 'true' if alert.is_read else 'false' }}">
+
+          <!-- Severity Icon -->
+          <div class="sev-icon icon-{{ sev_color }}">
+            <i class="fas {{ sev_icon }}" aria-hidden="true"></i>
+          </div>
+
+          <!-- Content -->
+          <div style="flex:1;min-width:0;">
+            <div class="d-flex align-items-start justify-content-between gap-3 mb-2">
+              <div>
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                  <span class="badge badge-{{ sev_color }}" style="font-size:0.62rem;text-transform:uppercase;">
+                    {{ alert.severity }}
+                  </span>
+                  <span class="badge badge-primary" style="font-size:0.62rem;">
+                    {{ alert.alert_type }}
+                  </span>
+                  {% if not alert.is_read %}
+                    <span style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);display:inline-block;" title="Unread"></span>
+                  {% endif %}
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th scope="col">ID</th>
-                                    <th scope="col">Type</th>
-                                    <th scope="col">Message</th>
-                                    <th scope="col">Location</th>
-                                    <th scope="col">Date & Time</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if alerts.items %}
-                                    {% for alert in alerts.items %}
-                                        <tr class="{% if not alert.is_read %}table-active{% endif %}">
-                                            <td>{{ alert.id }}</td>
-                                            <td>
-                                                <span class="badge rounded-pill 
-                                                    {% if alert.alert_type == 'sos' %}
-                                                        bg-danger
-                                                    {% elif alert.alert_type == 'detection' %}
-                                                        bg-warning
-                                                    {% else %}
-                                                        bg-info
-                                                    {% endif %}
-                                                ">
-                                                    {{ alert.alert_type|upper }}
-                                                </span>
-                                            </td>
-                                            <td>{{ alert.message }}</td>
-                                            <td>
-                                                {% if alert.latitude and alert.longitude %}
-                                                    <a href="https://www.google.com/maps?q={{ alert.latitude }},{{ alert.longitude }}" target="_blank">
-                                                        {{ alert.latitude|round(4) }}, {{ alert.longitude|round(4) }}
-                                                        <i class="fas fa-external-link-alt ms-1 small"></i>
-                                                    </a>
-                                                {% else %}
-                                                    N/A
-                                                {% endif %}
-                                            </td>
-                                            <td>{{ alert.timestamp.strftime('%d %b %Y, %H:%M') }}</td>
-                                            <td>
-                                                {% if alert.is_read %}
-                                                    <span class="badge bg-secondary">Read</span>
-                                                {% else %}
-                                                    <span class="badge bg-success">New</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    {% if alert.incident_id %}
-                                                        <a href="{{ url_for('admin.incident_detail', incident_id=alert.incident_id) }}" class="btn btn-outline-primary">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                    {% endif %}
-                                                    
-                                                    {% if not alert.is_read %}
-                                                        <button type="button" class="btn btn-outline-success mark-read-btn" data-alert-id="{{ alert.id }}">
-                                                            <i class="fas fa-check"></i>
-                                                        </button>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="7" class="text-center py-4">
-                                            No alerts found matching the filter criteria.
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            {% if alerts.total > 0 %}
-                                Showing {{ (alerts.page - 1) * alerts.per_page + 1 }} to
-                                {{ (alerts.page - 1) * alerts.per_page + alerts.items|length }} of
-                                {{ alerts.total }} alerts
-                            {% else %}
-                                No alerts found
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Pagination -->
-                        {% if alerts.pages > 1 %}
-                            <nav aria-label="Alert pagination">
-                                <ul class="pagination mb-0">
-                                    {% if alerts.has_prev %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ url_for('admin.alerts', page=alerts.prev_num, type=request.args.get('type'), status=request.args.get('status')) }}" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                        </li>
-                                    {% else %}
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                    
-                                    {% for page_num in alerts.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                                        {% if page_num %}
-                                            {% if page_num == alerts.page %}
-                                                <li class="page-item active">
-                                                    <a class="page-link" href="#">{{ page_num }}</a>
-                                                </li>
-                                            {% else %}
-                                                <li class="page-item">
-                                                    <a class="page-link" href="{{ url_for('admin.alerts', page=page_num, type=request.args.get('type'), status=request.args.get('status')) }}">{{ page_num }}</a>
-                                                </li>
-                                            {% endif %}
-                                        {% else %}
-                                            <li class="page-item disabled">
-                                                <a class="page-link" href="#">...</a>
-                                            </li>
-                                        {% endif %}
-                                    {% endfor %}
-                                    
-                                    {% if alerts.has_next %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ url_for('admin.alerts', page=alerts.next_num, type=request.args.get('type'), status=request.args.get('status')) }}" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    {% else %}
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                </ul>
-                            </nav>
-                        {% endif %}
-                    </div>
-                </div>
+                <p style="font-weight:600;font-size:0.9rem;color:var(--text-primary);margin:0;line-height:1.4;">
+                  {{ alert.message }}
+                </p>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-tertiary);white-space:nowrap;flex-shrink:0;">
+                {{ alert.timestamp.strftime('%H:%M · %d %b') }}
+              </span>
             </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Alert Management Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <h5 class="card-title text-danger">SOS Alerts</h5>
-                                    <p class="card-text">Emergency alerts triggered by users requiring immediate attention.</p>
-                                    <div class="alert alert-danger">
-                                        <small>Respond to SOS alerts within 5 minutes.</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <h5 class="card-title text-warning">Detection Alerts</h5>
-                                    <p class="card-text">Alerts generated from AI detection of anomalies in camera feeds.</p>
-                                    <div class="alert alert-warning">
-                                        <small>Verify AI detections before emergency dispatch.</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <h5 class="card-title text-info">System Alerts</h5>
-                                    <p class="card-text">Technical alerts related to system maintenance and status.</p>
-                                    <div class="alert alert-info">
-                                        <small>Monitor system alerts for platform health.</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+            <!-- Metadata row -->
+            <div class="d-flex align-items-center gap-4 flex-wrap" style="font-size:0.75rem;color:var(--text-tertiary);">
+              {% if alert.latitude and alert.longitude %}
+                <span>
+                  <i class="fas fa-location-dot me-1" aria-hidden="true"></i>
+                  {{ alert.latitude|round(4) }}°N, {{ alert.longitude|round(4) }}°E
+                </span>
+              {% endif %}
+              <span>
+                <i class="fas fa-tag me-1" aria-hidden="true"></i>
+                Trigger: {{ alert.trigger_type }}
+              </span>
+              {% if alert.source and alert.source != 'system' %}
+                <span>
+                  <i class="fas fa-camera me-1" aria-hidden="true"></i>
+                  Source: {{ alert.source }}
+                </span>
+              {% endif %}
             </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 mt-3">
+              {% if not alert.is_read %}
+                <button class="btn btn-ghost btn-sm mark-read-btn"
+                        data-alert-id="{{ alert.id }}"
+                        style="font-size:0.75rem;border-radius:var(--radius-sm);">
+                  <i class="fas fa-check me-1" aria-hidden="true"></i> Mark Read
+                </button>
+              {% else %}
+                <span style="font-size:0.72rem;color:var(--text-tertiary);">
+                  <i class="fas fa-check-double me-1" aria-hidden="true"></i> Read
+                </span>
+              {% endif %}
+              {% if alert.incident_id %}
+                <a href="{{ url_for('admin.incident_detail', incident_id=alert.incident_id) }}"
+                   class="btn btn-ghost btn-sm" style="font-size:0.75rem;border-radius:var(--radius-sm);">
+                  <i class="fas fa-arrow-up-right-from-square me-1" aria-hidden="true"></i> View Incident
+                </a>
+              {% endif %}
+            </div>
+          </div>
         </div>
+      {% endfor %}
+
+    {% else %}
+      <!-- Empty state -->
+      <div style="text-align:center;padding:5rem 2rem;">
+        <div style="width:80px;height:80px;background:var(--surface-overlay);border:1px solid var(--surface-border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text-tertiary);margin:0 auto 1.5rem;">
+          <i class="fas fa-bell-slash" aria-hidden="true"></i>
+        </div>
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;">No Alerts Yet</h3>
+        <p style="color:var(--text-secondary);font-size:0.875rem;">All clear — no alerts have been triggered yet.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Pagination -->
+  {% if alerts and alerts.pages > 1 %}
+    <div class="d-flex justify-content-center gap-2 mt-5">
+      {% if alerts.has_prev %}
+        <a href="{{ url_for('admin.alerts', page=alerts.prev_num) }}" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-chevron-left me-1" aria-hidden="true"></i> Previous
+        </a>
+      {% endif %}
+      <span class="btn btn-ghost btn-sm" style="cursor:default;">
+        Page {{ alerts.page }} of {{ alerts.pages }}
+      </span>
+      {% if alerts.has_next %}
+        <a href="{{ url_for('admin.alerts', page=alerts.next_num) }}" class="btn btn-outline-secondary btn-sm">
+          Next <i class="fas fa-chevron-right ms-1" aria-hidden="true"></i>
+        </a>
+      {% endif %}
     </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Mark as read functionality
-        const markReadButtons = document.querySelectorAll('.mark-read-btn');
-        
-        markReadButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const alertId = this.getAttribute('data-alert-id');
-                
-                fetch(`/admin/alert/${alertId}/mark-read`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Remove the button and update the status
-                        this.parentElement.removeChild(this);
-                        const row = this.closest('tr');
-                        const statusCell = row.querySelector('td:nth-child(6)');
-                        if (statusCell) {
-                            statusCell.innerHTML = '<span class="badge bg-secondary">Read</span>';
-                        }
-                        row.classList.remove('table-active');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error marking alert as read:', error);
-                    alert('Failed to mark alert as read. Please try again.');
-                });
-            });
+document.addEventListener('DOMContentLoaded', function() {
+  // ── Filter pills ──
+  const pills = document.querySelectorAll('.filter-pill');
+  const cards = document.querySelectorAll('.alert-card');
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      const filter = pill.dataset.filter;
+      cards.forEach(card => {
+        const sev  = card.dataset.severity;
+        const type = card.dataset.type;
+        const read = card.dataset.read;
+
+        let show = true;
+        if (filter === 'critical') show = sev === 'critical';
+        else if (filter === 'high')   show = sev === 'high';
+        else if (filter === 'medium') show = sev === 'medium';
+        else if (filter === 'sos')    show = type === 'sos';
+        else if (filter === 'unread') show = read === 'false';
+
+        card.style.display = show ? '' : 'none';
+      });
+    });
+  });
+
+  // ── Mark as read ──
+  document.querySelectorAll('.mark-read-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const id = this.dataset.alertId;
+      fetch(`/admin/alert/${id}/mark-read`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            const card = this.closest('.alert-card');
+            card.classList.add('is-read');
+            card.dataset.read = 'true';
+            this.outerHTML = '<span style="font-size:0.72rem;color:var(--text-tertiary);"><i class="fas fa-check-double me-1"></i> Read</span>';
+            Raahi?.toast.success('Alert marked', 'Alert marked as read.');
+          }
+        })
+        .catch(() => {
+          Raahi?.toast.warning('Error', 'Could not mark alert as read.');
         });
     });
+  });
+});
 </script>
 {% endblock %}

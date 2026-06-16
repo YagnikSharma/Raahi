@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class AnomalyDetector:
-    def __init__(self, model_path='best.pt', db_path='anomalies.db'):
+    def __init__(self, model_path='best.pt', db_path=None):
         """
         Initialize the anomaly detector
         
@@ -24,7 +24,10 @@ class AnomalyDetector:
             db_path (str): Path to SQLite database
         """
         self.model_path = model_path
-        self.db_path = db_path
+        if db_path is None:
+            self.db_path = "/tmp/anomalies.db" if os.environ.get("VERCEL") == "1" else "anomalies.db"
+        else:
+            self.db_path = db_path
         self.model = None
         self.target_classes = ['fire', 'violence', 'explosion']
         
